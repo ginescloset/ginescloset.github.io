@@ -1,4 +1,4 @@
--- GinesCloset · autorización de fotografías · versión 2026.08.02-r18
+-- GinesCloset · autorización de fotografías · versión 2026.08.02-r22
 -- Ejecuta este archivo COMPLETO en Supabase > SQL Editor > Run.
 -- Antes comprueba en Authentication > Third-Party Auth que Firebase esté
 -- conectado con el Project ID: ginescloset-12beb

@@ -24,19 +24,15 @@ const CATEGORIES = [
 ];
 const CATEGORY_LABELS = Object.fromEntries(CATEGORIES);
 const LEGACY_CATEGORIES = {vestidos:"camisetas",tops:"camisetas",conjuntos:"sudaderas",chaquetas:"abrigos",calzado:"zapatos",pantalones:"pantalones-largos",rinonera:"rinoneras",cartera:"carteras",bolso:"bolsos"};
-const DEFAULT_PRODUCTS = [
-  {id:"1",name:"Camiseta azul GC",brand:"Dior",category:"camisetas",price:"Consultar",image:"producto-1.jpg",badge:"NUEVO",sizes:["S","M","L"],active:true,description:"Una pieza especial seleccionada por GinesCloset.",createdOrder:5},
-  {id:"2",name:"Sudadera cielo",brand:"Prada",category:"sudaderas",price:"Consultar",image:"producto-2.jpg",badge:"DESTACADO",sizes:["S","M","L"],active:true,description:"Una prenda versátil con personalidad propia.",createdOrder:4},
-  {id:"3",name:"Pantalón eléctrico",brand:"Balenciaga",category:"pantalones-largos",price:"Consultar",image:"producto-3.jpg",badge:"GC EDIT",sizes:["S","M"],active:true,description:"Color, actitud y comodidad para destacar.",createdOrder:3},
-  {id:"4",name:"Polo efecto satén",brand:"Loewe",category:"polos",price:"Consultar",image:"producto-4.jpg",badge:"NUEVO",sizes:["S","M","L"],active:true,description:"Un acabado luminoso para elevar cualquier look.",createdOrder:2},
-  {id:"5",name:"Abrigo noche azul",brand:"Saint Laurent (YSL)",category:"abrigos",price:"Consultar",image:"producto-5.jpg",badge:"ÚLTIMAS",sizes:["S","M","L"],active:true,description:"Elegancia relajada para tus planes especiales.",createdOrder:1}
-];
+const PRODUCT_CACHE_KEY = "gc_catalog_cache_v2";
+const AUTH_HINT_KEY = "gc_auth_hint_v1";
+const cachedProducts = readProductCache();
 
 const state = {
-  products: DEFAULT_PRODUCTS.map(normalizeProduct), user: null, profile: {}, role: "customer", favorites: new Set(), cart: new Map(),
-  authReady: false, productsReady: true, selectedBrands: new Set(), selectedCategory: "all", newCategory: "all",
+  products: cachedProducts || [], productSignature: cachedProducts ? productSignature(cachedProducts) : "", user: null, profile: {}, role: "customer", favorites: new Set(), cart: new Map(), authHint: readAuthHint(),
+  authReady: false, productsReady: cachedProducts !== null, favoritesReady: false, cartReady: false, selectedBrands: new Set(), selectedCategory: "all", newCategory: "all",
   priceMin: null, priceMax: null,
-  pendingFavorite: sessionStorage.getItem("gc_pending_favorite") || "", pendingCart: readPendingCart(), stopFavorites: null, stopCart: null, lastRequestNumber: ""
+  pendingFavorite: sessionStorage.getItem("gc_pending_favorite") || "", pendingCart: readPendingCart(), stopFavorites: null, stopCart: null, lastRequestNumber: "", cartBusy: new Set(), infrastructureErrorShown: false
 };
 
 const esc = (value="") => String(value).replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[char]);
@@ -55,6 +51,25 @@ function normalizeProduct(product) {
   normalized.image = normalized.images[0];
   normalized.active = product.active !== false;
   return normalized;
+}
+function productSignature(products) {
+  return JSON.stringify(products.map(product => [product.id,product.name,product.brand,product.category,product.price,product.image,product.badge,product.sizes,product.active,product.createdOrder]));
+}
+function readProductCache() {
+  try {
+    const parsed = JSON.parse(sessionStorage.getItem(PRODUCT_CACHE_KEY) || "null");
+    return Array.isArray(parsed) ? parsed.map(normalizeProduct) : null;
+  } catch { return null; }
+}
+function writeProductCache(products) {
+  try { sessionStorage.setItem(PRODUCT_CACHE_KEY, JSON.stringify(products)); } catch { /* La web sigue funcionando sin caché. */ }
+}
+function readAuthHint() {
+  try { return JSON.parse(sessionStorage.getItem(AUTH_HINT_KEY) || "null"); } catch { return null; }
+}
+function writeAuthHint(hint) {
+  state.authHint = hint;
+  try { sessionStorage.setItem(AUTH_HINT_KEY, JSON.stringify(hint)); } catch { /* La sesión real siempre manda. */ }
 }
 function numericPrice(value) {
   const raw = String(value ?? "").trim();
@@ -86,6 +101,13 @@ function productMatchesPrice(product) {
 function currentFile() { return location.pathname.split("/").pop() || "index.html"; }
 function readPendingCart() { try { return JSON.parse(sessionStorage.getItem("gc_pending_cart") || "null"); } catch { return null; } }
 function clientNumberFor(user) { return `GC-${String(user?.uid || "CLIENTE").replace(/[^a-z0-9]/gi, "").slice(0,10).toUpperCase()}`; }
+function firestoreActionMessage(error, fallback="No se ha podido completar la operación.") {
+  const code=String(error?.code||"").toLowerCase(),message=String(error?.message||"").toLowerCase();
+  if(code.includes("permission-denied")||message.includes("permission"))return"Firebase ha bloqueado la operación. El administrador debe publicar el archivo firestore.rules incluido con la web.";
+  if(code.includes("unavailable")||message.includes("offline")||message.includes("network"))return"No hay conexión con la base de datos. Comprueba Internet e inténtalo de nuevo.";
+  return fallback;
+}
+function showInfrastructureErrorOnce(error,fallback){if(state.infrastructureErrorShown)return;state.infrastructureErrorShown=true;showToast(firestoreActionMessage(error,fallback),"error");}
 
 function initChrome() {
   document.querySelectorAll("[data-year]").forEach(node => node.textContent = new Date().getFullYear());
@@ -114,7 +136,7 @@ function productCard(product) {
   const category = CATEGORY_LABELS[product.category] || "Selección";
   const href = `articulo.html?id=${encodeURIComponent(product.id)}`;
   return `<article class="product-card" data-product-id="${esc(product.id)}">
-    <div class="product-media"><a href="${href}"><img src="${esc(product.image)}" alt="${esc(product.name)}" loading="lazy" onerror="this.src='producto-1.jpg'"></a>
+    <div class="product-media"><a href="${href}"><img src="${esc(product.image)}" alt="${esc(product.name)}" loading="lazy" decoding="async" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded');this.src='producto-1.jpg'"></a>
       ${product.badge ? `<span class="product-badge">${esc(product.badge)}</span>` : ""}
       <button class="heart-button ${liked ? "liked" : ""}" data-favorite="${esc(product.id)}" type="button" aria-label="${liked ? "Quitar de favoritos" : "Guardar en favoritos"}">${liked ? "♥" : "♡"}</button>
     </div>
@@ -123,21 +145,52 @@ function productCard(product) {
     </div></article>`;
 }
 
+function productLoadingMarkup(count=6) {
+  return Array.from({length:count},(_,index)=>`<article class="product-card product-skeleton" aria-hidden="true"><div class="product-media"></div><div class="product-card-info"><i></i><b></b><span></span></div></article>`).join("");
+}
+
 function renderHeader() {
-  document.querySelectorAll("[data-favorite-count]").forEach(node => node.textContent = state.favorites.size);
-  document.querySelectorAll("[data-cart-count]").forEach(node => node.textContent = state.cart.size);
+  document.querySelectorAll("[data-favorite-count]").forEach(node => { node.textContent = state.favorites.size; node.classList.toggle("count-pending", !state.favoritesReady); });
+  document.querySelectorAll("[data-cart-count]").forEach(node => { node.textContent = state.cart.size; node.classList.toggle("count-pending", !state.cartReady); });
   document.querySelectorAll("[data-account-link]").forEach(link => {
     const label = link.querySelector("[data-account-label]");
-    if (state.user && state.role === "admin") { link.href = "admin.html"; if (label) label.textContent = "Gestionar catálogo"; }
+    if (!state.authReady && state.authHint) { link.href = state.authHint.role === "admin" ? "admin.html" : "cuenta.html"; if (label) label.textContent = state.authHint.label || (state.authHint.signedIn ? "Mi cuenta" : "Iniciar sesión"); }
+    else if (state.user && state.role === "admin") { link.href = "admin.html"; if (label) label.textContent = "Gestionar catálogo"; }
     else if (state.user) { link.href = "cuenta.html"; if (label) label.textContent = state.profile.name || state.user.displayName || "Mi cuenta"; }
     else { link.href = "cuenta.html"; if (label) label.textContent = "Iniciar sesión"; }
   });
+  document.documentElement.classList.toggle("gc-auth-pending", !state.authReady && !state.authHint);
+}
+
+function syncProductActions() {
+  document.querySelectorAll("[data-favorite]").forEach(button => {
+    const liked = state.favorites.has(button.dataset.favorite);
+    button.classList.toggle("liked", liked);
+    button.setAttribute("aria-label", liked ? "Quitar de favoritos" : "Guardar en favoritos");
+    button.textContent = button.classList.contains("detail-heart") ? (liked ? "♥ Guardado en favoritos" : "♡ Guardar en favoritos") : (liked ? "♥" : "♡");
+  });
+  document.querySelectorAll("[data-cart]").forEach(button => {
+    const added = state.cart.has(button.dataset.cart);
+    button.classList.toggle("added", added);
+    button.textContent = button.hasAttribute("data-cart-detail") ? (added ? "✓ Artículo en el carrito" : "＋ Añadir al carrito") : (added ? "✓ Añadido" : "＋ Carrito");
+  });
+}
+
+function renderUserState() {
+  renderHeader();
+  syncProductActions();
+  if (page === "favorites") renderFavorites();
+  if (page === "cart") renderCart();
+  if (page === "account") renderAccount();
 }
 
 function renderPage() {
   renderHeader();
   const featured = document.querySelector("#homeFeatured");
-  if (featured) featured.innerHTML = activeProducts().slice(0,3).map(productCard).join("");
+  if (featured) {
+    const products = activeProducts().slice(0,3);
+    featured.innerHTML = !state.productsReady ? productLoadingMarkup(3) : products.length ? products.map(productCard).join("") : '<div class="collection-empty"><p class="kicker blue">PRÓXIMAMENTE</p><h3>Estamos preparando la nueva selección.</h3><a href="novedades.html">Ver novedades →</a></div>';
+  }
   if (page === "catalog") renderCatalog();
   if (page === "new") renderNewProducts();
   if (page === "favorites") renderFavorites();
@@ -212,6 +265,14 @@ function renderBrandOptions() {
 
 function renderCatalog() {
   const grid = document.querySelector("#catalogGrid"); if (!grid) return;
+  if (!state.productsReady) {
+    grid.innerHTML = productLoadingMarkup(6); grid.classList.remove("hidden"); grid.classList.add("is-loading");
+    document.querySelector("#catalogEmpty")?.classList.add("hidden");
+    document.querySelectorAll("[data-category-count],.brand-count").forEach(node=>node.classList.add("count-pending"));
+    ["#resultCount","#filterLiveResult","#filterApplyCount"].forEach(selector => { const node=document.querySelector(selector); if(node)node.textContent="—"; });
+    return;
+  }
+  grid.classList.remove("is-loading");
   document.querySelectorAll("[data-category]").forEach(button => button.classList.toggle("active", button.dataset.category === state.selectedCategory));
   const search = document.querySelector("#catalogSearch");
   const term = norm(search?.value);
@@ -244,7 +305,7 @@ function renderFilterMetadata(term) {
     const category = button.dataset.category;
     const count = category === "all" ? categoryBase.length : categoryBase.filter(product => product.category === category).length;
     const badge = button.querySelector("[data-category-count]");
-    if (badge) badge.textContent = count;
+    if (badge) { badge.textContent = count; badge.classList.remove("count-pending"); }
   });
   const categoryStatus = document.querySelector("#categoryFilterStatus");
   if (categoryStatus) categoryStatus.textContent = state.selectedCategory === "all" ? "Todas" : CATEGORY_LABELS[state.selectedCategory] || "Categoría";
@@ -254,7 +315,7 @@ function renderFilterMetadata(term) {
     const brand = option.dataset.brandName;
     const count = brandBase.filter(product => product.brand === brand).length;
     const badge = option.querySelector(".brand-count");
-    if (badge) badge.textContent = count;
+    if (badge) { badge.textContent = count; badge.classList.remove("count-pending"); }
     option.classList.toggle("unavailable", count === 0 && !state.selectedBrands.has(brand));
   });
 }
@@ -315,6 +376,11 @@ function initNew() {
 }
 function renderNewProducts() {
   const grid = document.querySelector("#newProductGrid"); if (!grid) return;
+  if (!state.productsReady) {
+    grid.innerHTML=productLoadingMarkup(8);grid.classList.remove("hidden");grid.classList.add("is-loading");
+    document.querySelector("#newEmpty")?.classList.add("hidden");const count=document.querySelector("#newResultCount");if(count)count.textContent="—";return;
+  }
+  grid.classList.remove("is-loading");
   const term = norm(document.querySelector("#newSearch")?.value);
   const products = activeProducts().filter(product => (!term || norm([product.name,product.brand,product.description].join(" ")).includes(term)) && (state.newCategory === "all" || product.category === state.newCategory)).sort((a,b) => Number(b.createdOrder || 0)-Number(a.createdOrder || 0));
   document.querySelectorAll("[data-new-category]").forEach(button => button.classList.toggle("active", button.dataset.newCategory === state.newCategory));
@@ -327,6 +393,8 @@ function initFavorites() { document.querySelector("#favoritesSearch")?.addEventL
 function renderFavorites() {
   const gate = document.querySelector("#favoritesGate"), tools = document.querySelector("#favoritesTools"), grid = document.querySelector("#favoritesGrid"), empty = document.querySelector("#favoritesEmpty");
   if (!grid) return;
+  if (!state.authReady || (state.user && !state.favoritesReady) || !state.productsReady) { gate.classList.add("hidden");tools.classList.add("hidden");empty.classList.add("hidden");grid.innerHTML=productLoadingMarkup(6);grid.classList.remove("hidden");grid.classList.add("is-loading");return; }
+  grid.classList.remove("is-loading");
   if (!state.user) { gate.classList.remove("hidden"); tools.classList.add("hidden"); grid.classList.add("hidden"); empty.classList.add("hidden"); return; }
   gate.classList.add("hidden"); tools.classList.remove("hidden");
   const term = norm(document.querySelector("#favoritesSearch")?.value);
@@ -343,7 +411,7 @@ function renderProductDetail() {
   if (!product) { root.innerHTML = '<div class="empty-state"><span>◇</span><h2>Este artículo no está disponible</h2><p>Puede haber sido retirado o el enlace no es correcto.</p><a class="button button-primary" href="catalogo.html">Volver al catálogo</a></div>'; return; }
   document.title = `${product.name} | GinesCloset`;
   const images = productImages(product), liked = state.favorites.has(product.id);
-  root.innerHTML = `<article class="product-detail"><div class="product-gallery"><div class="product-thumbs">${images.map((image,index) => `<button class="product-thumb ${index===0?"active":""}" type="button" data-detail-image="${esc(image)}"><img src="${esc(image)}" alt="Vista ${index+1} de ${esc(product.name)}"></button>`).join("")}</div><div class="product-main-image"><img id="detailMainImage" src="${esc(images[0])}" alt="${esc(product.name)}"></div></div>
+  root.innerHTML = `<article class="product-detail"><div class="product-gallery"><div class="product-thumbs">${images.map((image,index) => `<button class="product-thumb ${index===0?"active":""}" type="button" data-detail-image="${esc(image)}"><img src="${esc(image)}" alt="Vista ${index+1} de ${esc(product.name)}" onerror="this.src='producto-1.jpg'"></button>`).join("")}</div><div class="product-main-image"><img id="detailMainImage" src="${esc(images[0])}" alt="${esc(product.name)}" onerror="this.src='producto-1.jpg'"></div></div>
     <div class="product-detail-info"><p class="product-breadcrumb"><a href="catalogo.html">Catálogo</a> · ${esc(CATEGORY_LABELS[product.category] || "Selección")}</p><p class="kicker blue">${esc(product.brand || "GINESCLOSET")}</p><h1>${esc(product.name)}</h1><strong class="detail-price">${esc(formatPrice(product.price))}</strong><p class="detail-description">${esc(product.description || "Una pieza seleccionada por GinesCloset.")}</p>
       <label class="size-select-field"><span>Seleccionar talla</span><select id="detailSize"><option value="">Elige una talla</option>${product.sizes.map(size => `<option>${esc(size)}</option>`).join("")}</select></label>
       <div class="detail-actions"><button class="button button-primary" data-cart="${esc(product.id)}" data-cart-detail type="button">${state.cart.has(product.id)?"✓ Artículo en el carrito":"＋ Añadir al carrito"}</button><button class="detail-heart ${liked?"liked":""}" data-favorite="${esc(product.id)}" type="button">${liked?"♥ Guardado en favoritos":"♡ Guardar en favoritos"}</button></div></div></article>`;
@@ -363,7 +431,7 @@ async function toggleFavorite(id) {
   try {
     if (state.favorites.has(id)) { await deleteDoc(reference); showToast("Eliminado de favoritos", "success"); }
     else { await setDoc(reference,{productId:id,productName:product.name,productImage:product.image,createdAt:serverTimestamp()}); showToast("Guardado en favoritos", "success"); }
-  } catch (error) { console.error(error); showToast("No se ha podido actualizar el favorito.", "error"); }
+  } catch (error) { console.error(error); showToast(firestoreActionMessage(error,"No se ha podido actualizar el favorito."), "error"); }
 }
 
 async function addToCart(id, requestedSize="", requireSize=false) {
@@ -375,10 +443,13 @@ async function addToCart(id, requestedSize="", requireSize=false) {
   }
   if (state.role === "admin") { showToast("La cuenta administradora no utiliza carrito.","error"); return; }
   if (!state.cart.has(id) && state.cart.size >= 50) { showToast("El carrito admite un máximo de 50 artículos.","error"); return; }
+  if(state.cartBusy.has(id))return;
+  state.cartBusy.add(id);
   try {
     await setDoc(doc(db,"users",state.user.uid,"cart",id),{productId:id,productName:product.name,productImage:product.image,brand:product.brand||"",category:product.category||"",price:String(product.price||"Consultar"),size,addedAt:serverTimestamp()},{merge:true});
     showToast(state.cart.has(id)?"El artículo ya estaba en tu carrito":"Artículo añadido al carrito","success");
-  } catch(error) { console.error(error); showToast("No se ha podido añadir el artículo al carrito.","error"); }
+  } catch(error) { console.error(error); showToast(firestoreActionMessage(error,"No se ha podido añadir el artículo al carrito."),"error"); }
+  finally{state.cartBusy.delete(id);}
 }
 
 function renderCart() {
@@ -395,11 +466,12 @@ function renderCart() {
   root.querySelector("#submitCartRequest")?.addEventListener("click",submitCartRequest);
 }
 
-function cartItemMarkup(item){const product=item.product||{},sizes=Array.isArray(product.sizes)?product.sizes:[],selected=item.size||"";return `<article class="cart-item"><a href="articulo.html?id=${encodeURIComponent(item.id)}"><img src="${esc(item.productImage||product.image||"producto-1.jpg")}" alt="${esc(item.productName||product.name||"Artículo")}"></a><div class="cart-item-info"><p>${esc(item.brand||product.brand||"GINESCLOSET")}</p><h2><a href="articulo.html?id=${encodeURIComponent(item.id)}">${esc(item.productName||product.name||"Artículo")}</a></h2><strong>${esc(formatPrice(item.price||product.price))}</strong>${sizes.length?`<label>Talla<select data-cart-size="${esc(item.id)}"><option value="">Seleccionar</option>${sizes.map(size=>`<option value="${esc(size)}" ${selected===size?"selected":""}>${esc(size)}</option>`).join("")}</select></label>`:'<span class="cart-unique-size">Talla única</span>'}</div><button class="cart-remove" data-cart-remove="${esc(item.id)}" type="button" aria-label="Quitar ${esc(item.productName||product.name||"artículo")}">×</button></article>`;}
-async function updateCartSize(id,size){try{await setDoc(doc(db,"users",state.user.uid,"cart",id),{size},{merge:true});}catch(error){console.error(error);showToast("No se ha podido guardar la talla.","error");}}
-async function removeCartItem(id){try{await deleteDoc(doc(db,"users",state.user.uid,"cart",id));showToast("Artículo eliminado del carrito","success");}catch(error){console.error(error);showToast("No se ha podido eliminar el artículo.","error");}}
+function cartItemMarkup(item){const product=item.product||{},sizes=Array.isArray(product.sizes)?product.sizes:[],selected=item.size||"";return `<article class="cart-item"><a href="articulo.html?id=${encodeURIComponent(item.id)}"><img src="${esc(item.productImage||product.image||"producto-1.jpg")}" alt="${esc(item.productName||product.name||"Artículo")}" onerror="this.src='producto-1.jpg'"></a><div class="cart-item-info"><p>${esc(item.brand||product.brand||"GINESCLOSET")}</p><h2><a href="articulo.html?id=${encodeURIComponent(item.id)}">${esc(item.productName||product.name||"Artículo")}</a></h2><strong>${esc(formatPrice(item.price||product.price))}</strong>${sizes.length?`<label>Talla<select data-cart-size="${esc(item.id)}"><option value="">Seleccionar</option>${sizes.map(size=>`<option value="${esc(size)}" ${selected===size?"selected":""}>${esc(size)}</option>`).join("")}</select></label>`:'<span class="cart-unique-size">Talla única</span>'}</div><button class="cart-remove" data-cart-remove="${esc(item.id)}" type="button" aria-label="Quitar ${esc(item.productName||product.name||"artículo")}">×</button></article>`;}
+async function updateCartSize(id,size){try{await setDoc(doc(db,"users",state.user.uid,"cart",id),{size},{merge:true});}catch(error){console.error(error);showToast(firestoreActionMessage(error,"No se ha podido guardar la talla."),"error");}}
+async function removeCartItem(id){try{await deleteDoc(doc(db,"users",state.user.uid,"cart",id));showToast("Artículo eliminado del carrito","success");}catch(error){console.error(error);showToast(firestoreActionMessage(error,"No se ha podido eliminar el artículo."),"error");}}
 async function submitCartRequest(){
   const button=document.querySelector("#submitCartRequest"),errorBox=document.querySelector("#cartError"),items=[...state.cart.entries()].map(([id,item])=>{const product=state.products.find(entry=>entry.id===id)||{};return{productId:id,name:String(item.productName||product.name||"Artículo"),image:String(item.productImage||product.image||""),brand:String(item.brand||product.brand||""),category:String(item.category||product.category||""),price:String(item.price||product.price||"Consultar"),size:String(item.size||"")};});
+  if(!button||!errorBox||!items.length)return;
   const missingSize=items.find(item=>{const product=state.products.find(entry=>entry.id===item.productId);return product?.sizes?.length&&!item.size;});
   if(missingSize){errorBox.textContent=`Selecciona la talla de ${missingSize.name}.`;errorBox.classList.remove("hidden");return;}
   if(!state.profile.phone){errorBox.textContent="Añade un teléfono en tu perfil antes de enviar la solicitud.";errorBox.classList.remove("hidden");return;}
@@ -408,8 +480,8 @@ async function submitCartRequest(){
     const reference=doc(collection(db,"requests")),requestNumber=`SOL-${reference.id.slice(0,8).toUpperCase()}`,clientNumber=state.profile.clientNumber||clientNumberFor(state.user),batch=writeBatch(db);
     batch.set(reference,{requestNumber,userId:state.user.uid,clientNumber,customerName:state.profile.name||state.user.displayName||"Cliente",customerEmail:(state.user.email||"").toLowerCase(),customerPhone:state.profile.phone,items,itemCount:items.length,status:"pending",createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
     state.cart.forEach((_,id)=>batch.delete(doc(db,"users",state.user.uid,"cart",id)));
-    state.lastRequestNumber=requestNumber;await batch.commit();renderCart();
-  }catch(error){console.error(error);state.lastRequestNumber="";errorBox.textContent="No se ha podido enviar la solicitud. Inténtalo de nuevo.";errorBox.classList.remove("hidden");button.disabled=false;button.textContent="Enviar al administrador";}
+    await batch.commit();state.lastRequestNumber=requestNumber;renderCart();
+  }catch(error){console.error(error);state.lastRequestNumber="";errorBox.textContent=firestoreActionMessage(error,"No se ha podido enviar la solicitud. Inténtalo de nuevo.");errorBox.classList.remove("hidden");button.disabled=false;button.textContent="Enviar al administrador";}
 }
 
 function injectAuthModal() {
@@ -490,24 +562,29 @@ async function googleLogin(event) {
 
 async function finishAuthentication(user, context) {
   const snapshot = await getDoc(doc(db,"users",user.uid));
-  const role = snapshot.exists() ? snapshot.data().role || "customer" : "customer";
+  const profile = snapshot.exists() ? snapshot.data() : {};
+  const role = profile.role || "customer";
+  writeAuthHint({signedIn:true,role,label:role === "admin" ? "Gestionar catálogo" : profile.name || user.displayName || "Mi cuenta"});
   if (role === "admin") { sessionStorage.removeItem("gc_pending_favorite");sessionStorage.removeItem("gc_pending_cart");location.replace("admin.html"); return; }
   const pending = state.pendingFavorite || sessionStorage.getItem("gc_pending_favorite");
   const pendingCart=state.pendingCart||readPendingCart();
+  let pendingFailure="";
   if (pending) {
     const product = state.products.find(item => item.id === pending);
-    if (product) await setDoc(doc(db,"users",user.uid,"favorites",pending),{productId:pending,productName:product.name,productImage:product.image,createdAt:serverTimestamp()});
+    try{if (product) await setDoc(doc(db,"users",user.uid,"favorites",pending),{productId:pending,productName:product.name,productImage:product.image,createdAt:serverTimestamp()});}
+    catch(error){console.error(error);pendingFailure=firestoreActionMessage(error,"La sesión se ha iniciado, pero no se pudo guardar el favorito.");}
     state.pendingFavorite=""; sessionStorage.removeItem("gc_pending_favorite");
   }
-  if(pendingCart?.id){const product=state.products.find(item=>item.id===pendingCart.id);if(product)await setDoc(doc(db,"users",user.uid,"cart",product.id),{productId:product.id,productName:product.name,productImage:product.image,brand:product.brand||"",category:product.category||"",price:String(product.price||"Consultar"),size:pendingCart.size||(product.sizes.length===1?product.sizes[0]:""),addedAt:serverTimestamp()},{merge:true});state.pendingCart=null;sessionStorage.removeItem("gc_pending_cart");}
-  if (context === "modal") { closeAuthModal(); showToast(pendingCart?.id ? "Cuenta lista y artículo añadido al carrito" : pending ? "Cuenta lista y artículo guardado en favoritos" : "Sesión iniciada", "success"); return; }
+  if(pendingCart?.id){const product=state.products.find(item=>item.id===pendingCart.id);try{if(product)await setDoc(doc(db,"users",user.uid,"cart",product.id),{productId:product.id,productName:product.name,productImage:product.image,brand:product.brand||"",category:product.category||"",price:String(product.price||"Consultar"),size:pendingCart.size||(product.sizes.length===1?product.sizes[0]:""),addedAt:serverTimestamp()},{merge:true});}catch(error){console.error(error);pendingFailure=firestoreActionMessage(error,"La sesión se ha iniciado, pero no se pudo añadir el artículo al carrito.");}state.pendingCart=null;sessionStorage.removeItem("gc_pending_cart");}
+  if (context === "modal") { closeAuthModal(); showToast(pendingFailure||(pendingCart?.id ? "Cuenta lista y artículo añadido al carrito" : pending ? "Cuenta lista y artículo guardado en favoritos" : "Sesión iniciada"),pendingFailure?"error":"success"); return; }
+  if(pendingFailure)showToast(pendingFailure,"error");
   const returnTo = safeReturnPage(); location.replace(returnTo || "catalogo.html");
 }
 
 async function ensureProfile(user, extra={}) {
   const reference = doc(db,"users",user.uid), snapshot = await getDoc(reference);
   if (!snapshot.exists()) await setDoc(reference,{name:extra.name || user.displayName || "Cliente",phone:extra.phone || "",email:(user.email || "").toLowerCase(),role:"customer",clientNumber:clientNumberFor(user),createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
-  else if((snapshot.data().role||"customer")!=="admin"&&!snapshot.data().clientNumber)await setDoc(reference,{clientNumber:clientNumberFor(user),updatedAt:serverTimestamp()},{merge:true});
+  else if((snapshot.data().role||"customer")!=="admin"&&(!snapshot.data().clientNumber||!snapshot.data().role))await setDoc(reference,{role:"customer",clientNumber:snapshot.data().clientNumber||clientNumberFor(user),email:snapshot.data().email||(user.email||"").toLowerCase(),updatedAt:serverTimestamp()},{merge:true});
 }
 async function saveProfile(event) {
   event.preventDefault(); const form=event.currentTarget, data=new FormData(form), button=form.querySelector("button[type=submit]"), message=form.querySelector("[data-profile-message]");
@@ -520,26 +597,33 @@ async function resetPassword(event) {
   if(!email){error.textContent="Escribe primero tu correo electrónico.";error.classList.remove("hidden");return;}
   try{await sendPasswordResetEmail(auth,email);showToast("Te hemos enviado el correo para recuperar tu contraseña.","success");}catch(problem){error.textContent=friendlyError(problem);error.classList.remove("hidden");}
 }
-async function logoutToStore(){try{await signOut(auth);sessionStorage.removeItem("gc_pending_favorite");sessionStorage.removeItem("gc_pending_cart");location.replace("index.html?sesion=cerrada");}catch{showToast("No se ha podido cerrar la sesión.","error");}}
+async function logoutToStore(){try{await signOut(auth);sessionStorage.removeItem("gc_pending_favorite");sessionStorage.removeItem("gc_pending_cart");writeAuthHint({signedIn:false,role:"customer",label:"Iniciar sesión"});location.replace("index.html?sesion=cerrada");}catch{showToast("No se ha podido cerrar la sesión.","error");}}
 function safeReturnPage(){const value=new URLSearchParams(location.search).get("return")||"";return /^(?:index|catalogo|novedades|favoritos|carrito|cuenta|articulo)\.html(?:[?#].*)?$/i.test(value)?value:"";}
 function friendlyError(error){const messages={"auth/email-already-in-use":"Ya existe una cuenta con este correo.","auth/invalid-credential":"El correo o la contraseña no son correctos.","auth/weak-password":"La contraseña debe tener al menos 6 caracteres.","auth/invalid-email":"Introduce un correo válido.","auth/popup-closed-by-user":"Se ha cerrado la ventana de Google.","auth/popup-blocked":"El navegador ha bloqueado la ventana de Google. Permite las ventanas emergentes.","auth/network-request-failed":"No hay conexión. Comprueba Internet e inténtalo de nuevo.","auth/too-many-requests":"Demasiados intentos. Espera unos minutos.","auth/unauthorized-domain":"Falta autorizar este dominio en Firebase Authentication.","auth/operation-not-allowed":"Este método de acceso no está habilitado en Firebase."};return messages[error?.code] || "No se ha podido completar la operación. Inténtalo de nuevo.";}
 function showToast(message,type="success"){let toast=document.querySelector(".site-toast");if(!toast){toast=document.createElement("div");toast.className="site-toast";document.body.append(toast);}toast.textContent=message;toast.dataset.type=type;toast.classList.add("show");clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>toast.classList.remove("show"),3200);}
 
 onSnapshot(collection(db,"products"), snapshot => {
-  state.products = snapshot.empty ? DEFAULT_PRODUCTS.map(normalizeProduct) : snapshot.docs.map(item => normalizeProduct({id:item.id,...item.data()})).sort((a,b)=>Number(b.createdOrder||0)-Number(a.createdOrder||0));
-  state.productsReady = true; renderPage();
-}, error => { console.error(error); state.products=DEFAULT_PRODUCTS.map(normalizeProduct);state.productsReady=true;renderPage(); });
+  const products = snapshot.docs.map(item => normalizeProduct({id:item.id,...item.data()})).sort((a,b)=>Number(b.createdOrder||0)-Number(a.createdOrder||0));
+  const signature = productSignature(products), changed = !state.productsReady || signature !== state.productSignature;
+  state.products = products; state.productSignature = signature; state.productsReady = true; writeProductCache(products);
+  if (changed) renderPage();
+}, error => { console.error(error);if(!state.productsReady)state.products=[];state.productsReady=true;renderPage();showInfrastructureErrorOnce(error,"No se ha podido cargar el catálogo."); });
 
 onAuthStateChanged(auth, async user => {
-  state.user=user;state.profile={};state.role="customer";state.favorites.clear();state.cart.clear();state.lastRequestNumber="";state.stopFavorites?.();state.stopFavorites=null;state.stopCart?.();state.stopCart=null;
+  state.user=user;state.profile={};state.role="customer";state.favorites.clear();state.cart.clear();state.favoritesReady=false;state.cartReady=false;state.lastRequestNumber="";state.stopFavorites?.();state.stopFavorites=null;state.stopCart?.();state.stopCart=null;
   if(user){
     try{await ensureProfile(user);const snapshot=await getDoc(doc(db,"users",user.uid));if(snapshot.exists()){state.profile=snapshot.data();state.role=state.profile.role||"customer";}}catch(error){console.error(error);}
+    writeAuthHint({signedIn:true,role:state.role,label:state.role==="admin"?"Gestionar catálogo":state.profile.name||user.displayName||"Mi cuenta"});
     if(state.role!=="admin"){
-      state.stopFavorites=onSnapshot(collection(db,"users",user.uid,"favorites"), snapshot=>{state.favorites=new Set(snapshot.docs.map(item=>item.id));renderPage();}, error=>{console.error(error);renderPage();});
-      state.stopCart=onSnapshot(collection(db,"users",user.uid,"cart"),snapshot=>{state.cart=new Map(snapshot.docs.map(item=>[item.id,{id:item.id,...item.data()}]));renderPage();},error=>{console.error(error);renderPage();});
+      state.stopFavorites=onSnapshot(collection(db,"users",user.uid,"favorites"), snapshot=>{state.favorites=new Set(snapshot.docs.map(item=>item.id));state.favoritesReady=true;renderUserState();}, error=>{console.error(error);state.favoritesReady=true;renderUserState();showInfrastructureErrorOnce(error,"No se han podido cargar tus favoritos.");});
+      state.stopCart=onSnapshot(collection(db,"users",user.uid,"cart"),snapshot=>{state.cart=new Map(snapshot.docs.map(item=>[item.id,{id:item.id,...item.data()}]));state.cartReady=true;renderUserState();},error=>{console.error(error);state.cartReady=true;renderUserState();showInfrastructureErrorOnce(error,"No se ha podido cargar tu carrito.");});
+    } else {
+      state.favoritesReady=true;state.cartReady=true;
     }
+  } else {
+    state.favoritesReady=true;state.cartReady=true;writeAuthHint({signedIn:false,role:"customer",label:"Iniciar sesión"});
   }
-  state.authReady=true;renderPage();
+  state.authReady=true;renderUserState();
 });
 
 initChrome();

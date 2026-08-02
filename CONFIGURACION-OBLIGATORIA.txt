@@ -1,0 +1,324 @@
+GINESCLOSET · GUÍA COMPLETA DE PUBLICACIÓN Y CONFIGURACIÓN
+===========================================================
+Versión de la web: 2026.08.02-r23
+
+Esta guía deja funcionando:
+- La web estática en GitHub Pages.
+- Registro e inicio de sesión con correo y Google.
+- Perfiles y números de cliente.
+- Favoritos y carrito guardados por cliente.
+- Solicitudes enviadas al administrador.
+- Ofertas preparadas por WhatsApp.
+- Panel de administración y gestión del catálogo.
+- Fotografías del catálogo almacenadas en Supabase.
+
+IMPORTANTE
+----------
+GitHub, Firebase y Supabase son tres servicios distintos. Subir los archivos
+a GitHub NO publica automáticamente las reglas de Firebase ni las políticas
+de Supabase. Debes completar los pasos en este orden.
+
+
+PASO 1 · DESCOMPRIMIR EL ZIP
+============================
+1. Haz clic derecho sobre el ZIP y elige "Extraer todo".
+2. Abre la carpeta extraída.
+3. Dentro deben aparecer directamente index.html, app.js, styles.css y los
+   demás archivos. No subas el ZIP sin descomprimir.
+4. No metas estos archivos dentro de otra carpeta del repositorio.
+
+
+PASO 2 · SUBIR LA WEB COMPLETA A GITHUB
+=======================================
+1. Entra en GitHub y abre el repositorio ginescloset.github.io.
+2. Entra en la pestaña Code.
+3. Pulsa Add file y después Upload files.
+4. Arrastra TODOS los archivos que hay dentro de la carpeta extraída.
+5. Comprueba que index.html queda en la raíz del repositorio.
+6. En el mensaje escribe, por ejemplo: "Publicar GinesCloset r23".
+7. Confirma con Commit changes.
+8. En Settings > Pages comprueba:
+   - Source: Deploy from a branch.
+   - Branch: main.
+   - Folder: / (root).
+9. Espera a que GitHub termine la publicación.
+10. Abre https://ginescloset.github.io y pulsa Ctrl + F5.
+
+Si continúa apareciendo una versión antigua, abre una ventana privada. Si la
+ventana privada muestra la versión nueva, el problema era únicamente la caché.
+
+
+PASO 3 · ACTIVAR EL INICIO DE SESIÓN EN FIREBASE
+================================================
+Proyecto Firebase esperado: ginescloset / ginescloset-12beb
+
+3.1. Activar correo y contraseña
+--------------------------------
+1. Entra en Firebase Console y abre el proyecto ginescloset.
+2. Abre Security > Authentication.
+3. Entra en Sign-in method / Método de acceso.
+4. Abre Email/Password.
+5. Activa Email/Password y guarda.
+
+3.2. Activar Google
+-------------------
+1. Sin salir de Sign-in method, abre Google.
+2. Actívalo.
+3. Selecciona el correo de soporte solicitado por Firebase.
+4. Guarda.
+
+3.3. Autorizar el dominio de GitHub
+-----------------------------------
+1. En Authentication entra en Settings / Configuración.
+2. Busca Authorized domains / Dominios autorizados.
+3. Pulsa Add domain / Agregar un dominio.
+4. Escribe exactamente:
+
+   ginescloset.github.io
+
+5. No escribas https:// y no añadas una barra al final.
+6. Guarda.
+
+Para pruebas locales puedes añadir localhost, pero no es necesario para la web
+publicada.
+
+
+PASO 4 · PUBLICAR LAS REGLAS DE FIRESTORE
+==========================================
+Archivo que debes utilizar: firestore.rules
+
+1. En Firebase abre Firestore Database.
+2. Selecciona la base de datos (default), si aparece un selector.
+3. Abre la pestaña Rules / Reglas.
+4. Abre firestore.rules desde la carpeta extraída con el Bloc de notas.
+5. Selecciona todo su contenido con Ctrl + A.
+6. Copia con Ctrl + C.
+7. Regresa al editor de reglas de Firebase.
+8. Selecciona todas las reglas antiguas con Ctrl + A.
+9. Pega las reglas nuevas con Ctrl + V.
+10. Pulsa Publish / Publicar.
+11. Espera al menos un minuto. En sesiones que ya estaban abiertas, Firebase
+    puede tardar algunos minutos más en aplicar por completo el cambio.
+
+Estas reglas permiten:
+- Lectura pública del catálogo.
+- Escritura del catálogo solamente al administrador.
+- Cada cliente solo puede modificar su perfil, favoritos y carrito.
+- Cada cliente puede crear sus propias solicitudes.
+- El administrador puede leer y actualizar las solicitudes.
+- Un cliente nunca puede convertirse a sí mismo en administrador.
+
+No necesitas publicar reglas de Firebase Storage porque esta web guarda las
+fotografías en Supabase, no en Firebase Storage.
+
+
+PASO 5 · COMPROBAR LA CUENTA ADMINISTRADORA
+===========================================
+Correo administrador configurado para las fotografías:
+
+   ginescloset@gmail.com
+
+5.1. Comprobar el usuario de Authentication
+--------------------------------------------
+1. En Firebase abre Authentication > Users / Usuarios.
+2. Busca ginescloset@gmail.com.
+3. Si no existe, pulsa Add user / Agregar usuario y crea la cuenta.
+4. Copia el UID exacto de ese usuario.
+
+5.2. Comprobar el documento de Firestore
+-----------------------------------------
+1. Abre Firestore Database > Data / Datos.
+2. Abre la colección users.
+3. Debe existir un documento cuyo ID sea exactamente el UID anterior.
+4. Si no existe, crea el documento usando el UID como Document ID.
+5. Comprueba o añade estos campos:
+
+   role   (string) = admin
+   email  (string) = ginescloset@gmail.com
+   name   (string) = Admin
+   phone  (string) = tu número de teléfono
+
+6. Si role aparece como customer, cambia solamente su valor por admin.
+7. Guarda los cambios.
+8. Cierra la sesión de GinesCloset e inicia sesión nuevamente.
+
+Al detectar role = admin, la web debe abrir directamente admin.html y mostrar
+el gestor del catálogo.
+
+MUY IMPORTANTE: no utilices el UID de otro usuario y no pongas espacios en la
+palabra admin.
+
+
+PASO 6 · CONECTAR FIREBASE CON SUPABASE
+=======================================
+Proyecto Firebase que debe conectarse: ginescloset-12beb
+
+1. Entra en Supabase y abre el proyecto de GinesCloset.
+2. Abre Authentication.
+3. Entra en Third-Party Auth.
+4. Pulsa Add integration / Agregar integración.
+5. Selecciona Firebase.
+6. Escribe este Project ID:
+
+   ginescloset-12beb
+
+7. Activa la integración y guarda.
+
+Este paso permite que Supabase compruebe el inicio de sesión realizado en
+Firebase antes de aceptar una fotografía.
+
+
+PASO 7 · PUBLICAR LAS POLÍTICAS DE SUPABASE
+===========================================
+Archivo que debes utilizar: supabase-storage-policies.sql
+
+1. En Supabase abre SQL Editor.
+2. Pulsa New query / Nueva consulta.
+3. Abre supabase-storage-policies.sql con el Bloc de notas.
+4. Selecciona todo con Ctrl + A y copia con Ctrl + C.
+5. Pega el contenido completo en SQL Editor.
+6. Pulsa Run / Ejecutar.
+7. La ejecución debe terminar sin errores.
+8. Al final deben aparecer:
+   - El bucket catalog-media.
+   - Public = true.
+   - Límite de 10 MB.
+   - Cuatro políticas:
+     * Public catalog media
+     * GinesCloset admin uploads
+     * GinesCloset admin updates
+     * GinesCloset admin deletes
+
+El bucket es público únicamente para VER las fotografías. Añadir, cambiar o
+eliminar archivos está limitado al token Firebase del proyecto
+ginescloset-12beb y al correo ginescloset@gmail.com.
+
+Si cambias el correo administrador en el futuro, también debes cambiar esta
+línea dentro del SQL y volver a ejecutarlo:
+
+   lower(auth.jwt() ->> 'email') = 'ginescloset@gmail.com'
+
+No introduzcas en GitHub la contraseña del administrador ni la service_role
+key de Supabase. La clave incluida en la web es la publishable key, que está
+diseñada para trabajar junto a estas políticas.
+
+
+PASO 8 · PRUEBA COMPLETA COMO CLIENTE
+=====================================
+1. Cierra cualquier sesión abierta.
+2. Pulsa Ctrl + F5.
+3. Abre la página de cuenta.
+4. Crea una cuenta de cliente.
+5. En Mi cuenta añade nombre y teléfono.
+6. Abre un artículo y guárdalo en favoritos.
+7. Añádelo al carrito y selecciona una talla.
+8. Abre el carrito y pulsa Enviar al administrador.
+9. Comprueba que aparece la confirmación y el número de solicitud.
+10. Cierra la sesión desde Mi cuenta.
+
+
+PASO 9 · PRUEBA COMPLETA COMO ADMINISTRADOR
+===========================================
+1. Inicia sesión con ginescloset@gmail.com.
+2. Debes entrar directamente al gestor de catálogo.
+3. Abre Nuevo artículo.
+4. Selecciona categoría, marca, precio y tallas.
+5. Comprueba los grupos de tallas adultas e infantiles.
+6. Añade una fotografía JPG, PNG o WEBP.
+7. Publica el artículo.
+8. Abre Ver tienda pública y comprueba que aparece.
+9. En el menú del administrador abre Solicitudes.
+10. Abre la solicitud del cliente y prepara una oferta por WhatsApp.
+11. Cierra la sesión desde el menú administrador.
+
+
+ERRORES HABITUALES Y SU SOLUCIÓN
+================================
+
+"Missing or insufficient permissions" o no se añade al carrito
+----------------------------------------------------------------
+- firestore.rules no está publicado o todavía no se ha aplicado.
+- Repite el PASO 4, espera y vuelve a iniciar sesión.
+
+"auth/unauthorized-domain" o Google no inicia sesión
+-----------------------------------------------------
+- Falta ginescloset.github.io en Authorized domains.
+- Repite el PASO 3.3.
+
+Google o Email/Password aparece deshabilitado
+----------------------------------------------
+- Repite los PASOS 3.1 y 3.2.
+
+"Supabase ha rechazado la fotografía"
+---------------------------------------
+- Falta la integración Firebase en Third-Party Auth o no se ejecutó el SQL.
+- Repite los PASOS 6 y 7.
+- Cierra la sesión de administrador, recarga y entra de nuevo para obtener un
+  token renovado.
+
+"new row violates row-level security policy" o error 403
+---------------------------------------------------------
+- Las políticas de Supabase no están activas para catalog-media.
+- Ejecuta de nuevo el SQL completo y comprueba las cuatro políticas.
+
+El administrador vuelve a la web pública
+-----------------------------------------
+- El documento users/UID no tiene role = admin o el Document ID no coincide
+  con el UID de Authentication.
+- Repite el PASO 5 y vuelve a iniciar sesión.
+
+El artículo se guarda pero no aparece públicamente
+--------------------------------------------------
+- Comprueba que Publicado y visible está activado.
+
+Continúa apareciendo la web antigua
+-----------------------------------
+- Asegúrate de haber subido admin.html, admin.js, app.js y styles.css nuevos.
+- Comprueba que index.html está en la raíz.
+- Pulsa Ctrl + F5 o abre una ventana privada.
+
+
+ARCHIVOS IMPORTANTES DEL ZIP
+============================
+- index.html: página principal.
+- catalogo.html: catálogo y filtros.
+- articulo.html: ficha y carrito.
+- cuenta.html: login, registro y perfil.
+- admin.html / admin.js: gestor administrador.
+- app.js: lógica de clientes, favoritos, carrito y solicitudes.
+- styles.css: diseño completo.
+- firestore.rules: reglas que se pegan en Firebase.
+- supabase-storage-policies.sql: políticas que se ejecutan en Supabase.
+- CONFIGURACION-OBLIGATORIA.txt: esta guía.
+
+
+DOCUMENTACIÓN OFICIAL
+=====================
+GitHub · Subir archivos:
+https://docs.github.com/en/repositories/working-with-files/managing-files/adding-a-file-to-a-repository
+
+Firebase · Reglas de Firestore:
+https://firebase.google.com/docs/firestore/security/get-started
+
+Firebase · Correo y contraseña:
+https://firebase.google.com/docs/auth/web/password-auth
+
+Firebase · Acceso con Google:
+https://firebase.google.com/docs/auth/web/google-signin
+
+Supabase · Firebase como autenticación externa:
+https://supabase.com/docs/guides/auth/third-party/firebase-auth
+
+Supabase · Políticas de Storage:
+https://supabase.com/docs/guides/storage/security/access-control
+
+
+ORDEN RÁPIDO
+============
+1. Subir todos los archivos a GitHub.
+2. Activar Email/Password, Google y el dominio en Firebase.
+3. Publicar firestore.rules.
+4. Comprobar users/UID con role = admin.
+5. Conectar Firebase en Supabase Third-Party Auth.
+6. Ejecutar supabase-storage-policies.sql.
+7. Cerrar sesión, Ctrl + F5 y probar cliente y administrador.
