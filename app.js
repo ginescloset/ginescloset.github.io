@@ -24,11 +24,11 @@ const CATEGORIES = [
 const CATEGORY_LABELS = Object.fromEntries(CATEGORIES);
 const LEGACY_CATEGORIES = {vestidos:"camisetas",tops:"camisetas",conjuntos:"sudaderas",chaquetas:"abrigos",calzado:"zapatos",pantalones:"pantalones-largos"};
 const DEFAULT_PRODUCTS = [
-  {id:"1",name:"Camiseta azul GC",brand:"Dior",category:"camisetas",price:"Consultar",image:"media/producto-1.jpg",badge:"NUEVO",sizes:["S","M","L"],active:true,description:"Una pieza especial seleccionada por GinesCloset.",createdOrder:5},
-  {id:"2",name:"Sudadera cielo",brand:"Prada",category:"sudaderas",price:"Consultar",image:"media/producto-2.jpg",badge:"DESTACADO",sizes:["S","M","L"],active:true,description:"Una prenda versátil con personalidad propia.",createdOrder:4},
-  {id:"3",name:"Pantalón eléctrico",brand:"Balenciaga",category:"pantalones-largos",price:"Consultar",image:"media/producto-3.jpg",badge:"GC EDIT",sizes:["S","M"],active:true,description:"Color, actitud y comodidad para destacar.",createdOrder:3},
-  {id:"4",name:"Polo efecto satén",brand:"Loewe",category:"polos",price:"Consultar",image:"media/producto-4.jpg",badge:"NUEVO",sizes:["S","M","L"],active:true,description:"Un acabado luminoso para elevar cualquier look.",createdOrder:2},
-  {id:"5",name:"Abrigo noche azul",brand:"Saint Laurent (YSL)",category:"abrigos",price:"Consultar",image:"media/producto-5.jpg",badge:"ÚLTIMAS",sizes:["S","M","L"],active:true,description:"Elegancia relajada para tus planes especiales.",createdOrder:1}
+  {id:"1",name:"Camiseta azul GC",brand:"Dior",category:"camisetas",price:"Consultar",image:"producto-1.jpg",badge:"NUEVO",sizes:["S","M","L"],active:true,description:"Una pieza especial seleccionada por GinesCloset.",createdOrder:5},
+  {id:"2",name:"Sudadera cielo",brand:"Prada",category:"sudaderas",price:"Consultar",image:"producto-2.jpg",badge:"DESTACADO",sizes:["S","M","L"],active:true,description:"Una prenda versátil con personalidad propia.",createdOrder:4},
+  {id:"3",name:"Pantalón eléctrico",brand:"Balenciaga",category:"pantalones-largos",price:"Consultar",image:"producto-3.jpg",badge:"GC EDIT",sizes:["S","M"],active:true,description:"Color, actitud y comodidad para destacar.",createdOrder:3},
+  {id:"4",name:"Polo efecto satén",brand:"Loewe",category:"polos",price:"Consultar",image:"producto-4.jpg",badge:"NUEVO",sizes:["S","M","L"],active:true,description:"Un acabado luminoso para elevar cualquier look.",createdOrder:2},
+  {id:"5",name:"Abrigo noche azul",brand:"Saint Laurent (YSL)",category:"abrigos",price:"Consultar",image:"producto-5.jpg",badge:"ÚLTIMAS",sizes:["S","M","L"],active:true,description:"Elegancia relajada para tus planes especiales.",createdOrder:1}
 ];
 
 const state = {
@@ -39,9 +39,10 @@ const state = {
 
 const esc = (value="") => String(value).replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[char]);
 const norm = value => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+function publicAsset(value) { return String(value || "").replace(/^media\//, ""); }
 function productImages(product) {
-  const images = Array.isArray(product.images) ? product.images.map(item => typeof item === "string" ? item : item?.url).filter(Boolean) : [];
-  return images.length ? images : [product.image || "media/producto-1.jpg"];
+  const images = Array.isArray(product.images) ? product.images.map(item => publicAsset(typeof item === "string" ? item : item?.url)).filter(Boolean) : [];
+  return images.length ? images : [publicAsset(product.image) || "producto-1.jpg"];
 }
 function normalizeProduct(product) {
   const normalized = {...product};
@@ -87,7 +88,7 @@ function productCard(product) {
   const category = CATEGORY_LABELS[product.category] || "Selección";
   const href = `articulo.html?id=${encodeURIComponent(product.id)}`;
   return `<article class="product-card" data-product-id="${esc(product.id)}">
-    <div class="product-media"><a href="${href}"><img src="${esc(product.image)}" alt="${esc(product.name)}" loading="lazy" onerror="this.src='media/producto-1.jpg'"></a>
+    <div class="product-media"><a href="${href}"><img src="${esc(product.image)}" alt="${esc(product.name)}" loading="lazy" onerror="this.src='producto-1.jpg'"></a>
       ${product.badge ? `<span class="product-badge">${esc(product.badge)}</span>` : ""}
       <button class="heart-button ${liked ? "liked" : ""}" data-favorite="${esc(product.id)}" type="button" aria-label="${liked ? "Quitar de favoritos" : "Guardar en favoritos"}">${liked ? "♥" : "♡"}</button>
     </div>
