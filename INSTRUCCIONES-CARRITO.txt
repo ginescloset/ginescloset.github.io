@@ -1,0 +1,20 @@
+GINESCLOSET · ACTIVAR CARRITO Y SOLICITUDES
+
+1. Descomprime el ZIP.
+2. Sube todos los archivos a la raíz del repositorio de GitHub.
+3. En Firebase abre Firestore Database > Reglas.
+4. Abre el archivo firestore.rules incluido en el ZIP.
+5. Copia todo su contenido y sustituye las reglas que aparecen en Firebase.
+6. Pulsa Publicar.
+7. Espera uno o dos minutos y recarga la web con Ctrl + F5.
+
+No tienes que crear colecciones manualmente. Firebase creará automáticamente:
+- El carrito de cada cliente.
+- Las solicitudes enviadas al administrador.
+- Los números de cliente de las cuentas nuevas y existentes.
+
+FLUJO
+- El cliente añade artículos al carrito y selecciona las tallas.
+- Envía la solicitud al administrador.
+- En el gestor aparece en Solicitudes.
+- El administrador escribe el importe y abre WhatsApp con la oferta y los artículos preparados.

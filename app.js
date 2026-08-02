@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, updateProfile, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, deleteDoc, collection, onSnapshot, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, deleteDoc, collection, onSnapshot, serverTimestamp, getDoc, writeBatch } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDBMMKFmaszQIr1ew1bYKmZh43wRREiBtU",
@@ -33,10 +33,10 @@ const DEFAULT_PRODUCTS = [
 ];
 
 const state = {
-  products: DEFAULT_PRODUCTS.map(normalizeProduct), user: null, profile: {}, role: "customer", favorites: new Set(),
+  products: DEFAULT_PRODUCTS.map(normalizeProduct), user: null, profile: {}, role: "customer", favorites: new Set(), cart: new Map(),
   authReady: false, productsReady: true, selectedBrands: new Set(), selectedCategory: "all", newCategory: "all",
   priceMin: null, priceMax: null,
-  pendingFavorite: sessionStorage.getItem("gc_pending_favorite") || "", stopFavorites: null
+  pendingFavorite: sessionStorage.getItem("gc_pending_favorite") || "", pendingCart: readPendingCart(), stopFavorites: null, stopCart: null, lastRequestNumber: ""
 };
 
 const esc = (value="") => String(value).replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[char]);
@@ -84,6 +84,8 @@ function productMatchesPrice(product) {
   return value !== null && (state.priceMin === null || value >= state.priceMin) && (state.priceMax === null || value <= state.priceMax);
 }
 function currentFile() { return location.pathname.split("/").pop() || "index.html"; }
+function readPendingCart() { try { return JSON.parse(sessionStorage.getItem("gc_pending_cart") || "null"); } catch { return null; } }
+function clientNumberFor(user) { return `GC-${String(user?.uid || "CLIENTE").replace(/[^a-z0-9]/gi, "").slice(0,10).toUpperCase()}`; }
 
 function initChrome() {
   document.querySelectorAll("[data-year]").forEach(node => node.textContent = new Date().getFullYear());
@@ -99,6 +101,8 @@ function initChrome() {
     if (favoriteButton) { event.preventDefault(); event.stopPropagation(); toggleFavorite(favoriteButton.dataset.favorite); return; }
     const authButton = event.target.closest("[data-open-auth]");
     if (authButton) { event.preventDefault(); openAuthModal(authButton.dataset.openAuth || "login"); return; }
+    const cartButton = event.target.closest("[data-cart]");
+    if (cartButton) { event.preventDefault(); event.stopPropagation(); const size=cartButton.hasAttribute("data-cart-detail") ? document.querySelector("#detailSize")?.value || "" : ""; addToCart(cartButton.dataset.cart,size,cartButton.hasAttribute("data-cart-detail")); return; }
     const logoutButton = event.target.closest("[data-logout]");
     if (logoutButton) { event.preventDefault(); logoutToStore(); }
   });
@@ -115,12 +119,13 @@ function productCard(product) {
       <button class="heart-button ${liked ? "liked" : ""}" data-favorite="${esc(product.id)}" type="button" aria-label="${liked ? "Quitar de favoritos" : "Guardar en favoritos"}">${liked ? "♥" : "♡"}</button>
     </div>
     <div class="product-card-info"><div class="product-meta"><span>${esc(product.brand || "GinesCloset")} · ${esc(category)}</span><strong>${esc(formatPrice(product.price))}</strong></div>
-      <h3><a href="${href}">${esc(product.name)}</a></h3><div class="product-bottom"><div class="product-sizes">${product.sizes.length ? product.sizes.map(size => `<i>${esc(size)}</i>`).join("") : "<span>Talla única</span>"}</div><a class="product-price" href="${href}">Ver artículo →</a></div>
+      <h3><a href="${href}">${esc(product.name)}</a></h3><div class="product-bottom"><div class="product-sizes">${product.sizes.length ? product.sizes.map(size => `<i>${esc(size)}</i>`).join("") : "<span>Talla única</span>"}</div><div class="product-card-actions"><a class="product-price" href="${href}">Ver →</a><button class="card-cart ${state.cart.has(product.id)?"added":""}" data-cart="${esc(product.id)}" type="button">${state.cart.has(product.id)?"✓ Añadido":"＋ Carrito"}</button></div></div>
     </div></article>`;
 }
 
 function renderHeader() {
   document.querySelectorAll("[data-favorite-count]").forEach(node => node.textContent = state.favorites.size);
+  document.querySelectorAll("[data-cart-count]").forEach(node => node.textContent = state.cart.size);
   document.querySelectorAll("[data-account-link]").forEach(link => {
     const label = link.querySelector("[data-account-label]");
     if (state.user && state.role === "admin") { link.href = "admin.html"; if (label) label.textContent = "Gestionar catálogo"; }
@@ -136,6 +141,7 @@ function renderPage() {
   if (page === "catalog") renderCatalog();
   if (page === "new") renderNewProducts();
   if (page === "favorites") renderFavorites();
+  if (page === "cart") renderCart();
   if (page === "product") renderProductDetail();
   if (page === "account") renderAccount();
 }
@@ -340,7 +346,7 @@ function renderProductDetail() {
   root.innerHTML = `<article class="product-detail"><div class="product-gallery"><div class="product-thumbs">${images.map((image,index) => `<button class="product-thumb ${index===0?"active":""}" type="button" data-detail-image="${esc(image)}"><img src="${esc(image)}" alt="Vista ${index+1} de ${esc(product.name)}"></button>`).join("")}</div><div class="product-main-image"><img id="detailMainImage" src="${esc(images[0])}" alt="${esc(product.name)}"></div></div>
     <div class="product-detail-info"><p class="product-breadcrumb"><a href="catalogo.html">Catálogo</a> · ${esc(CATEGORY_LABELS[product.category] || "Selección")}</p><p class="kicker blue">${esc(product.brand || "GINESCLOSET")}</p><h1>${esc(product.name)}</h1><strong class="detail-price">${esc(formatPrice(product.price))}</strong><p class="detail-description">${esc(product.description || "Una pieza seleccionada por GinesCloset.")}</p>
       <label class="size-select-field"><span>Seleccionar talla</span><select id="detailSize"><option value="">Elige una talla</option>${product.sizes.map(size => `<option>${esc(size)}</option>`).join("")}</select></label>
-      <div class="detail-actions"><a class="button button-primary" id="availabilityLink" href="https://www.instagram.com/ginescloset/" target="_blank" rel="noopener">Consultar disponibilidad</a><button class="detail-heart ${liked?"liked":""}" data-favorite="${esc(product.id)}" type="button">${liked?"♥ Guardado en favoritos":"♡ Guardar en favoritos"}</button></div></div></article>`;
+      <div class="detail-actions"><button class="button button-primary" data-cart="${esc(product.id)}" data-cart-detail type="button">${state.cart.has(product.id)?"✓ Artículo en el carrito":"＋ Añadir al carrito"}</button><button class="detail-heart ${liked?"liked":""}" data-favorite="${esc(product.id)}" type="button">${liked?"♥ Guardado en favoritos":"♡ Guardar en favoritos"}</button></div></div></article>`;
   root.querySelectorAll("[data-detail-image]").forEach(button => button.addEventListener("click", () => { root.querySelectorAll(".product-thumb").forEach(item => item.classList.remove("active")); button.classList.add("active"); document.querySelector("#detailMainImage").src = button.dataset.detailImage; }));
   const related = activeProducts().filter(item => item.id !== product.id && (item.category === product.category || item.brand === product.brand)).slice(0,3);
   const relatedRoot = document.querySelector("#relatedProducts"), section = document.querySelector("#relatedSection");
@@ -360,9 +366,55 @@ async function toggleFavorite(id) {
   } catch (error) { console.error(error); showToast("No se ha podido actualizar el favorito.", "error"); }
 }
 
+async function addToCart(id, requestedSize="", requireSize=false) {
+  const product = state.products.find(item => item.id === id); if (!product) return;
+  const size = requestedSize || (product.sizes.length === 1 ? product.sizes[0] : "");
+  if (requireSize && product.sizes.length && !size) { showToast("Selecciona una talla antes de añadir el artículo.", "error"); document.querySelector("#detailSize")?.focus(); return; }
+  if (!state.user) {
+    state.pendingCart = {id,size}; sessionStorage.setItem("gc_pending_cart",JSON.stringify(state.pendingCart)); openAuthModal("register",product,"cart"); return;
+  }
+  if (state.role === "admin") { showToast("La cuenta administradora no utiliza carrito.","error"); return; }
+  if (!state.cart.has(id) && state.cart.size >= 50) { showToast("El carrito admite un máximo de 50 artículos.","error"); return; }
+  try {
+    await setDoc(doc(db,"users",state.user.uid,"cart",id),{productId:id,productName:product.name,productImage:product.image,brand:product.brand||"",category:product.category||"",price:String(product.price||"Consultar"),size,addedAt:serverTimestamp()},{merge:true});
+    showToast(state.cart.has(id)?"El artículo ya estaba en tu carrito":"Artículo añadido al carrito","success");
+  } catch(error) { console.error(error); showToast("No se ha podido añadir el artículo al carrito.","error"); }
+}
+
+function renderCart() {
+  const root=document.querySelector("#cartRoot"); if(!root||!state.authReady)return;
+  if(!state.user){root.innerHTML=`<section class="cart-gate"><span>▢</span><h1>Tu carrito te espera</h1><p>Inicia sesión o crea una cuenta para guardar artículos y enviarnos una solicitud.</p><button class="button button-primary" data-open-auth="login" type="button">Iniciar sesión</button><button class="text-button" data-open-auth="register" type="button">Crear una cuenta</button></section>`;return;}
+  if(state.role==="admin"){location.replace("admin.html");return;}
+  const clientNumber=state.profile.clientNumber||clientNumberFor(state.user),items=[...state.cart.entries()].map(([id,item])=>({id,...item,product:state.products.find(product=>product.id===id)}));
+  if(state.lastRequestNumber&&!items.length){root.innerHTML=`<section class="cart-success"><span>✓</span><p class="kicker blue">SOLICITUD ENVIADA</p><h1>Ya la tiene GinesCloset.</h1><p>Tu solicitud <b>${esc(state.lastRequestNumber)}</b> ha llegado al administrador. Preparará una oferta con tus artículos y te escribirá por WhatsApp.</p><div><a class="button button-primary" href="catalogo.html">Seguir viendo el catálogo</a><a class="text-button" href="cuenta.html">Ver mis datos</a></div></section>`;return;}
+  if(!items.length){root.innerHTML=`<section class="cart-empty"><span>▢</span><p class="kicker blue">TU CARRITO</p><h1>Aún no has añadido artículos.</h1><p>Explora el catálogo y guarda aquí las piezas que quieras consultar.</p><a class="button button-primary" href="catalogo.html">Explorar catálogo</a></section>`;return;}
+  const phone=state.profile.phone||"";
+  root.innerHTML=`<section class="cart-heading"><div><p class="kicker blue">SOLICITUD PERSONAL · ${esc(clientNumber)}</p><h1>Tu carrito.</h1><p>Revisa las tallas y envía la selección. El administrador recibirá los artículos y te preparará una oferta por WhatsApp.</p></div><span><b>${items.length}</b> artículo${items.length===1?"":"s"}</span></section><div class="cart-layout"><section class="cart-items">${items.map(cartItemMarkup).join("")}</section><aside class="cart-summary"><p class="kicker blue">RESUMEN</p><h2>Solicitud de oferta</h2><dl><div><dt>Número de cliente</dt><dd>${esc(clientNumber)}</dd></div><div><dt>Artículos</dt><dd>${items.length}</dd></div><div><dt>WhatsApp</dt><dd>${esc(phone||"Sin número")}</dd></div></dl>${phone?'<p class="cart-summary-note">No se realizará ningún pago ahora. Recibirás una oferta personalizada por WhatsApp.</p>':'<p class="cart-phone-warning">Añade tu teléfono en “Mi cuenta” antes de enviar la solicitud.</p>'}<button class="button button-primary" id="submitCartRequest" type="button" ${phone?"":"disabled"}>Enviar al administrador</button>${phone?"":'<a class="button button-secondary" href="cuenta.html">Completar mis datos</a>'}<p class="cart-error hidden" id="cartError" role="alert"></p></aside></div>`;
+  root.querySelectorAll("[data-cart-remove]").forEach(button=>button.addEventListener("click",()=>removeCartItem(button.dataset.cartRemove)));
+  root.querySelectorAll("[data-cart-size]").forEach(select=>select.addEventListener("change",()=>updateCartSize(select.dataset.cartSize,select.value)));
+  root.querySelector("#submitCartRequest")?.addEventListener("click",submitCartRequest);
+}
+
+function cartItemMarkup(item){const product=item.product||{},sizes=Array.isArray(product.sizes)?product.sizes:[],selected=item.size||"";return `<article class="cart-item"><a href="articulo.html?id=${encodeURIComponent(item.id)}"><img src="${esc(item.productImage||product.image||"producto-1.jpg")}" alt="${esc(item.productName||product.name||"Artículo")}"></a><div class="cart-item-info"><p>${esc(item.brand||product.brand||"GINESCLOSET")}</p><h2><a href="articulo.html?id=${encodeURIComponent(item.id)}">${esc(item.productName||product.name||"Artículo")}</a></h2><strong>${esc(formatPrice(item.price||product.price))}</strong>${sizes.length?`<label>Talla<select data-cart-size="${esc(item.id)}"><option value="">Seleccionar</option>${sizes.map(size=>`<option value="${esc(size)}" ${selected===size?"selected":""}>${esc(size)}</option>`).join("")}</select></label>`:'<span class="cart-unique-size">Talla única</span>'}</div><button class="cart-remove" data-cart-remove="${esc(item.id)}" type="button" aria-label="Quitar ${esc(item.productName||product.name||"artículo")}">×</button></article>`;}
+async function updateCartSize(id,size){try{await setDoc(doc(db,"users",state.user.uid,"cart",id),{size},{merge:true});}catch(error){console.error(error);showToast("No se ha podido guardar la talla.","error");}}
+async function removeCartItem(id){try{await deleteDoc(doc(db,"users",state.user.uid,"cart",id));showToast("Artículo eliminado del carrito","success");}catch(error){console.error(error);showToast("No se ha podido eliminar el artículo.","error");}}
+async function submitCartRequest(){
+  const button=document.querySelector("#submitCartRequest"),errorBox=document.querySelector("#cartError"),items=[...state.cart.entries()].map(([id,item])=>{const product=state.products.find(entry=>entry.id===id)||{};return{productId:id,name:String(item.productName||product.name||"Artículo"),image:String(item.productImage||product.image||""),brand:String(item.brand||product.brand||""),category:String(item.category||product.category||""),price:String(item.price||product.price||"Consultar"),size:String(item.size||"")};});
+  const missingSize=items.find(item=>{const product=state.products.find(entry=>entry.id===item.productId);return product?.sizes?.length&&!item.size;});
+  if(missingSize){errorBox.textContent=`Selecciona la talla de ${missingSize.name}.`;errorBox.classList.remove("hidden");return;}
+  if(!state.profile.phone){errorBox.textContent="Añade un teléfono en tu perfil antes de enviar la solicitud.";errorBox.classList.remove("hidden");return;}
+  button.disabled=true;button.textContent="Enviando…";errorBox.classList.add("hidden");
+  try{
+    const reference=doc(collection(db,"requests")),requestNumber=`SOL-${reference.id.slice(0,8).toUpperCase()}`,clientNumber=state.profile.clientNumber||clientNumberFor(state.user),batch=writeBatch(db);
+    batch.set(reference,{requestNumber,userId:state.user.uid,clientNumber,customerName:state.profile.name||state.user.displayName||"Cliente",customerEmail:(state.user.email||"").toLowerCase(),customerPhone:state.profile.phone,items,itemCount:items.length,status:"pending",createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
+    state.cart.forEach((_,id)=>batch.delete(doc(db,"users",state.user.uid,"cart",id)));
+    state.lastRequestNumber=requestNumber;await batch.commit();renderCart();
+  }catch(error){console.error(error);state.lastRequestNumber="";errorBox.textContent="No se ha podido enviar la solicitud. Inténtalo de nuevo.";errorBox.classList.remove("hidden");button.disabled=false;button.textContent="Enviar al administrador";}
+}
+
 function injectAuthModal() {
   if (document.querySelector("#authModalBackdrop")) return;
-  document.body.insertAdjacentHTML("beforeend", `<div class="modal-backdrop" id="authModalBackdrop" aria-hidden="true"><section class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle"><aside class="auth-modal-side"><a href="index.html">GINESCLOSET</a><div><p class="kicker">TU SELECCIÓN, SIEMPRE CONTIGO</p><h2>Guarda lo que te inspira.</h2><p>Crea tu cuenta y este artículo aparecerá automáticamente en tus favoritos.</p></div><div id="pendingProduct"></div></aside><div class="auth-modal-main"><button class="modal-close" id="authModalClose" type="button" aria-label="Cerrar">×</button><div id="authModalContent"></div><button class="modal-cancel" id="authModalCancel" type="button">Cerrar y seguir mirando</button></div></section></div>`);
+  document.body.insertAdjacentHTML("beforeend", `<div class="modal-backdrop" id="authModalBackdrop" aria-hidden="true"><section class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle"><aside class="auth-modal-side"><a href="index.html">GINESCLOSET</a><div><p class="kicker">TU SELECCIÓN, SIEMPRE CONTIGO</p><h2 id="authSideTitle">Guarda lo que te inspira.</h2><p id="authSideCopy">Crea tu cuenta y conserva tu selección.</p></div><div id="pendingProduct"></div></aside><div class="auth-modal-main"><button class="modal-close" id="authModalClose" type="button" aria-label="Cerrar">×</button><div id="authModalContent"></div><button class="modal-cancel" id="authModalCancel" type="button">Cerrar y seguir mirando</button></div></section></div>`);
   const backdrop = document.querySelector("#authModalBackdrop");
   document.querySelector("#authModalClose").addEventListener("click", closeAuthModal);
   document.querySelector("#authModalCancel").addEventListener("click", closeAuthModal);
@@ -372,7 +424,7 @@ function injectAuthModal() {
 
 function authPanelMarkup(mode="login", context="modal") {
   const register = mode === "register";
-  return `<div class="auth-panel"><div class="auth-tabs"><button class="${!register?"active":""}" data-auth-mode="login" type="button">Iniciar sesión</button><button class="${register?"active":""}" data-auth-mode="register" type="button">Crear cuenta</button></div><h1 id="authModalTitle">${register?"Crea tu cuenta":"Bienvenido de nuevo"}</h1><p>${register?"Guarda tus favoritos desde cualquier dispositivo.":"Accede a tu selección personal."}</p>
+  return `<div class="auth-panel"><div class="auth-tabs"><button class="${!register?"active":""}" data-auth-mode="login" type="button">Iniciar sesión</button><button class="${register?"active":""}" data-auth-mode="register" type="button">Crear cuenta</button></div><h1 id="authModalTitle">${register?"Crea tu cuenta":"Bienvenido de nuevo"}</h1><p>${register?"Guarda favoritos, prepara carritos y recibe ofertas personalizadas.":"Accede a tu selección personal."}</p>
     <form class="auth-form" data-auth-form data-mode="${mode}" data-context="${context}">${register?'<div class="field"><label>Nombre</label><input name="name" required maxlength="60" autocomplete="name" placeholder="Tu nombre"></div><div class="field"><label>Teléfono</label><input name="phone" type="tel" required maxlength="25" autocomplete="tel" placeholder="+34 600 000 000"></div>':""}<div class="field"><label>Correo electrónico</label><input name="email" type="email" required autocomplete="email" placeholder="tu@email.com"></div><div class="field"><label>Contraseña</label><input name="password" type="password" required minlength="6" autocomplete="${register?"new-password":"current-password"}" placeholder="Mínimo 6 caracteres"></div><p class="auth-error hidden" data-auth-error role="alert"></p><button class="button button-primary" type="submit">${register?"Crear mi cuenta":"Entrar"}</button></form>
     ${!register?'<button class="text-button" data-reset-password type="button">¿Has olvidado la contraseña?</button>':""}<div class="auth-divider"><span>o continúa con</span></div><button class="google-button" data-google-login type="button"><b>G</b> Continuar con Google</button><p class="auth-note">Acceso protegido con Firebase. Las cuentas nuevas siempre son de cliente.</p></div>`;
 }
@@ -384,28 +436,30 @@ function bindAuthPanel(root, mode, context) {
   root.querySelector("[data-reset-password]")?.addEventListener("click", resetPassword);
 }
 function renderAuthPanel(root, mode, context) { root.innerHTML = authPanelMarkup(mode, context); bindAuthPanel(root, mode, context); }
-function openAuthModal(mode="login", product=null) {
+function openAuthModal(mode="login", product=null, action="favorite") {
   const backdrop = document.querySelector("#authModalBackdrop"); if (!backdrop) return;
-  const selected = product || state.products.find(item => item.id === state.pendingFavorite);
+  const selected = product || state.products.find(item => item.id === (action==="cart"?state.pendingCart?.id:state.pendingFavorite));
   const preview = document.querySelector("#pendingProduct");
-  preview.innerHTML = selected ? `<div class="pending-product"><img src="${esc(selected.image)}" alt=""><div><small>SE GUARDARÁ DESPUÉS</small><b>${esc(selected.name)}</b></div></div>` : "";
+  document.querySelector("#authSideTitle").textContent=!selected?"Tu espacio GinesCloset.":action==="cart"?"Prepara tu selección.":"Guarda lo que te inspira.";
+  document.querySelector("#authSideCopy").textContent=!selected?"Accede a tus favoritos, tu carrito y tus solicitudes desde cualquier dispositivo.":action==="cart"?"Crea tu cuenta y este artículo se añadirá automáticamente a tu carrito.":"Crea tu cuenta y este artículo aparecerá automáticamente en tus favoritos.";
+  preview.innerHTML = selected ? `<div class="pending-product"><img src="${esc(selected.image)}" alt=""><div><small>${action==="cart"?"SE AÑADIRÁ AL CARRITO":"SE GUARDARÁ DESPUÉS"}</small><b>${esc(selected.name)}</b></div></div>` : "";
   renderAuthPanel(document.querySelector("#authModalContent"), mode, "modal");
   backdrop.classList.add("open"); backdrop.setAttribute("aria-hidden","false"); document.body.style.overflow = "hidden";
   setTimeout(() => backdrop.querySelector("input")?.focus(), 100);
 }
-function closeAuthModal() { const backdrop=document.querySelector("#authModalBackdrop"); backdrop?.classList.remove("open"); backdrop?.setAttribute("aria-hidden","true"); document.body.style.overflow=""; state.pendingFavorite=""; sessionStorage.removeItem("gc_pending_favorite"); }
+function closeAuthModal() { const backdrop=document.querySelector("#authModalBackdrop"); backdrop?.classList.remove("open"); backdrop?.setAttribute("aria-hidden","true"); document.body.style.overflow=""; state.pendingFavorite="";state.pendingCart=null;sessionStorage.removeItem("gc_pending_favorite");sessionStorage.removeItem("gc_pending_cart"); }
 
 function renderAccount(mode) {
   const root = document.querySelector("#accountRoot"); if (!root || !state.authReady) return;
   if (state.user && state.role === "admin") { location.replace("admin.html"); return; }
   if (state.user) {
     const name = state.profile.name || state.user.displayName || "Cliente";
-    root.innerHTML = `<section class="profile-card"><div class="profile-card-header"><span class="profile-avatar">${esc(name.charAt(0).toUpperCase())}</span><div><p class="kicker blue">MI PERFIL</p><h1>Mis datos</h1><p>Consulta y actualiza tu información personal.</p></div></div><form class="profile-form" id="profileForm"><div class="field"><label>Nombre</label><input name="name" required maxlength="60" value="${esc(name)}"></div><div class="field"><label>Teléfono</label><input name="phone" type="tel" maxlength="25" value="${esc(state.profile.phone || "")}" placeholder="+34 600 000 000"></div><div class="field"><label>Correo electrónico</label><input value="${esc(state.user.email || "")}" disabled><span class="profile-help">El correo electrónico está protegido y no se puede modificar aquí.</span></div><p class="auth-error hidden" data-profile-message></p><div class="profile-actions"><button class="button button-primary" type="submit">Guardar cambios</button><button class="logout-button" data-logout type="button">Cerrar sesión</button></div></form></section>`;
+    root.innerHTML = `<section class="profile-card"><div class="profile-card-header"><span class="profile-avatar">${esc(name.charAt(0).toUpperCase())}</span><div><p class="kicker blue">MI PERFIL</p><h1>Mis datos</h1><p>Consulta y actualiza tu información personal.</p></div></div><div class="client-number-card"><span>NÚMERO DE CLIENTE</span><b>${esc(state.profile.clientNumber||clientNumberFor(state.user))}</b><small>Identifica tus solicitudes y ofertas de GinesCloset.</small></div><form class="profile-form" id="profileForm"><div class="field"><label>Nombre</label><input name="name" required maxlength="60" value="${esc(name)}"></div><div class="field"><label>Teléfono de WhatsApp</label><input name="phone" type="tel" maxlength="25" value="${esc(state.profile.phone || "")}" placeholder="+34 600 000 000"></div><div class="field"><label>Correo electrónico</label><input value="${esc(state.user.email || "")}" disabled><span class="profile-help">El correo electrónico está protegido y no se puede modificar aquí.</span></div><p class="auth-error hidden" data-profile-message></p><div class="profile-actions"><button class="button button-primary" type="submit">Guardar cambios</button><button class="logout-button" data-logout type="button">Cerrar sesión</button></div></form></section>`;
     root.querySelector("#profileForm").addEventListener("submit", saveProfile);
     return;
   }
   const requested = mode || new URLSearchParams(location.search).get("modo") || "login";
-  root.innerHTML = `<section class="auth-card"><aside class="auth-visual"><a href="index.html">GINESCLOSET</a><div><p class="kicker">TU ESPACIO PERSONAL</p><h2>Tu selección,<br>siempre contigo.</h2><p>Guarda las piezas que te gustan y vuelve a ellas desde cualquier dispositivo.</p></div><small>ACCESO SEGURO · FIREBASE</small></aside><div id="accountAuthPanel"></div></section>`;
+  root.innerHTML = `<section class="auth-card"><aside class="auth-visual"><a href="index.html">GINESCLOSET</a><div><p class="kicker">TU ESPACIO PERSONAL</p><h2>Tu selección,<br>siempre contigo.</h2><p>Guarda favoritos, prepara un carrito y recibe ofertas personalizadas por WhatsApp.</p></div><small>ACCESO SEGURO · FIREBASE</small></aside><div id="accountAuthPanel"></div></section>`;
   renderAuthPanel(root.querySelector("#accountAuthPanel"), requested === "register" ? "register" : "login", "page");
 }
 
@@ -437,20 +491,23 @@ async function googleLogin(event) {
 async function finishAuthentication(user, context) {
   const snapshot = await getDoc(doc(db,"users",user.uid));
   const role = snapshot.exists() ? snapshot.data().role || "customer" : "customer";
-  if (role === "admin") { sessionStorage.removeItem("gc_pending_favorite"); location.replace("admin.html"); return; }
+  if (role === "admin") { sessionStorage.removeItem("gc_pending_favorite");sessionStorage.removeItem("gc_pending_cart");location.replace("admin.html"); return; }
   const pending = state.pendingFavorite || sessionStorage.getItem("gc_pending_favorite");
+  const pendingCart=state.pendingCart||readPendingCart();
   if (pending) {
     const product = state.products.find(item => item.id === pending);
     if (product) await setDoc(doc(db,"users",user.uid,"favorites",pending),{productId:pending,productName:product.name,productImage:product.image,createdAt:serverTimestamp()});
     state.pendingFavorite=""; sessionStorage.removeItem("gc_pending_favorite");
   }
-  if (context === "modal") { closeAuthModal(); showToast(pending ? "Cuenta lista y artículo guardado en favoritos" : "Sesión iniciada", "success"); return; }
+  if(pendingCart?.id){const product=state.products.find(item=>item.id===pendingCart.id);if(product)await setDoc(doc(db,"users",user.uid,"cart",product.id),{productId:product.id,productName:product.name,productImage:product.image,brand:product.brand||"",category:product.category||"",price:String(product.price||"Consultar"),size:pendingCart.size||(product.sizes.length===1?product.sizes[0]:""),addedAt:serverTimestamp()},{merge:true});state.pendingCart=null;sessionStorage.removeItem("gc_pending_cart");}
+  if (context === "modal") { closeAuthModal(); showToast(pendingCart?.id ? "Cuenta lista y artículo añadido al carrito" : pending ? "Cuenta lista y artículo guardado en favoritos" : "Sesión iniciada", "success"); return; }
   const returnTo = safeReturnPage(); location.replace(returnTo || "catalogo.html");
 }
 
 async function ensureProfile(user, extra={}) {
   const reference = doc(db,"users",user.uid), snapshot = await getDoc(reference);
-  if (!snapshot.exists()) await setDoc(reference,{name:extra.name || user.displayName || "Cliente",phone:extra.phone || "",email:(user.email || "").toLowerCase(),role:"customer",createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
+  if (!snapshot.exists()) await setDoc(reference,{name:extra.name || user.displayName || "Cliente",phone:extra.phone || "",email:(user.email || "").toLowerCase(),role:"customer",clientNumber:clientNumberFor(user),createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
+  else if((snapshot.data().role||"customer")!=="admin"&&!snapshot.data().clientNumber)await setDoc(reference,{clientNumber:clientNumberFor(user),updatedAt:serverTimestamp()},{merge:true});
 }
 async function saveProfile(event) {
   event.preventDefault(); const form=event.currentTarget, data=new FormData(form), button=form.querySelector("button[type=submit]"), message=form.querySelector("[data-profile-message]");
@@ -463,8 +520,8 @@ async function resetPassword(event) {
   if(!email){error.textContent="Escribe primero tu correo electrónico.";error.classList.remove("hidden");return;}
   try{await sendPasswordResetEmail(auth,email);showToast("Te hemos enviado el correo para recuperar tu contraseña.","success");}catch(problem){error.textContent=friendlyError(problem);error.classList.remove("hidden");}
 }
-async function logoutToStore(){try{await signOut(auth);sessionStorage.removeItem("gc_pending_favorite");location.replace("index.html?sesion=cerrada");}catch{showToast("No se ha podido cerrar la sesión.","error");}}
-function safeReturnPage(){const value=new URLSearchParams(location.search).get("return")||"";return /^(?:index|catalogo|novedades|favoritos|cuenta|articulo)\.html(?:[?#].*)?$/i.test(value)?value:"";}
+async function logoutToStore(){try{await signOut(auth);sessionStorage.removeItem("gc_pending_favorite");sessionStorage.removeItem("gc_pending_cart");location.replace("index.html?sesion=cerrada");}catch{showToast("No se ha podido cerrar la sesión.","error");}}
+function safeReturnPage(){const value=new URLSearchParams(location.search).get("return")||"";return /^(?:index|catalogo|novedades|favoritos|carrito|cuenta|articulo)\.html(?:[?#].*)?$/i.test(value)?value:"";}
 function friendlyError(error){const messages={"auth/email-already-in-use":"Ya existe una cuenta con este correo.","auth/invalid-credential":"El correo o la contraseña no son correctos.","auth/weak-password":"La contraseña debe tener al menos 6 caracteres.","auth/invalid-email":"Introduce un correo válido.","auth/popup-closed-by-user":"Se ha cerrado la ventana de Google.","auth/popup-blocked":"El navegador ha bloqueado la ventana de Google. Permite las ventanas emergentes.","auth/network-request-failed":"No hay conexión. Comprueba Internet e inténtalo de nuevo.","auth/too-many-requests":"Demasiados intentos. Espera unos minutos.","auth/unauthorized-domain":"Falta autorizar este dominio en Firebase Authentication.","auth/operation-not-allowed":"Este método de acceso no está habilitado en Firebase."};return messages[error?.code] || "No se ha podido completar la operación. Inténtalo de nuevo.";}
 function showToast(message,type="success"){let toast=document.querySelector(".site-toast");if(!toast){toast=document.createElement("div");toast.className="site-toast";document.body.append(toast);}toast.textContent=message;toast.dataset.type=type;toast.classList.add("show");clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>toast.classList.remove("show"),3200);}
 
@@ -474,10 +531,13 @@ onSnapshot(collection(db,"products"), snapshot => {
 }, error => { console.error(error); state.products=DEFAULT_PRODUCTS.map(normalizeProduct);state.productsReady=true;renderPage(); });
 
 onAuthStateChanged(auth, async user => {
-  state.user=user;state.profile={};state.role="customer";state.favorites.clear();state.stopFavorites?.();state.stopFavorites=null;
+  state.user=user;state.profile={};state.role="customer";state.favorites.clear();state.cart.clear();state.lastRequestNumber="";state.stopFavorites?.();state.stopFavorites=null;state.stopCart?.();state.stopCart=null;
   if(user){
-    try{const snapshot=await getDoc(doc(db,"users",user.uid));if(snapshot.exists()){state.profile=snapshot.data();state.role=state.profile.role||"customer";}else await ensureProfile(user);}catch(error){console.error(error);}
-    state.stopFavorites=onSnapshot(collection(db,"users",user.uid,"favorites"), snapshot=>{state.favorites=new Set(snapshot.docs.map(item=>item.id));renderPage();}, error=>{console.error(error);renderPage();});
+    try{await ensureProfile(user);const snapshot=await getDoc(doc(db,"users",user.uid));if(snapshot.exists()){state.profile=snapshot.data();state.role=state.profile.role||"customer";}}catch(error){console.error(error);}
+    if(state.role!=="admin"){
+      state.stopFavorites=onSnapshot(collection(db,"users",user.uid,"favorites"), snapshot=>{state.favorites=new Set(snapshot.docs.map(item=>item.id));renderPage();}, error=>{console.error(error);renderPage();});
+      state.stopCart=onSnapshot(collection(db,"users",user.uid,"cart"),snapshot=>{state.cart=new Map(snapshot.docs.map(item=>[item.id,{id:item.id,...item.data()}]));renderPage();},error=>{console.error(error);renderPage();});
+    }
   }
   state.authReady=true;renderPage();
 });
