@@ -19,10 +19,11 @@ const page = document.body.dataset.page;
 const BRANDS = ["Louis Vuitton","Dior","Gucci","Prada","Balenciaga","Versace","Dolce & Gabbana","Fendi","Burberry","Givenchy","Saint Laurent (YSL)","Loewe","Celine","Valentino","Hermès","Chanel","Miu Miu","Maison Margiela","Alexander McQueen","Moncler","Stone Island","Palm Angels","Amiri","Off-White","Fear of God","Supreme","Chrome Hearts","Gallery Dept.","Rhude","Denim Tears","Essentials","Corteiz","Trapstar","Nike","Jordan","Adidas","New Balance","Cartier","Kenzo","Alo","Bottega Desires","Nude Project","Purple"];
 const CATEGORIES = [
   ["camisetas","Camisetas"],["sudaderas","Sudaderas"],["polos","Polos"],["camisetas-futbol","Camisetas de fútbol"],
-  ["abrigos","Abrigos"],["zapatos","Zapatos"],["pantalones-cortos","Pantalones cortos"],["pantalones-largos","Pantalones largos"]
+  ["abrigos","Abrigos"],["zapatos","Zapatos"],["pantalones-cortos","Pantalones cortos"],["pantalones-largos","Pantalones largos"],
+  ["bolsos","Bolsos"],["carteras","Carteras"],["rinoneras","Riñoneras"]
 ];
 const CATEGORY_LABELS = Object.fromEntries(CATEGORIES);
-const LEGACY_CATEGORIES = {vestidos:"camisetas",tops:"camisetas",conjuntos:"sudaderas",chaquetas:"abrigos",calzado:"zapatos",pantalones:"pantalones-largos"};
+const LEGACY_CATEGORIES = {vestidos:"camisetas",tops:"camisetas",conjuntos:"sudaderas",chaquetas:"abrigos",calzado:"zapatos",pantalones:"pantalones-largos",rinonera:"rinoneras",cartera:"carteras",bolso:"bolsos"};
 const DEFAULT_PRODUCTS = [
   {id:"1",name:"Camiseta azul GC",brand:"Dior",category:"camisetas",price:"Consultar",image:"producto-1.jpg",badge:"NUEVO",sizes:["S","M","L"],active:true,description:"Una pieza especial seleccionada por GinesCloset.",createdOrder:5},
   {id:"2",name:"Sudadera cielo",brand:"Prada",category:"sudaderas",price:"Consultar",image:"producto-2.jpg",badge:"DESTACADO",sizes:["S","M","L"],active:true,description:"Una prenda versátil con personalidad propia.",createdOrder:4},
@@ -34,7 +35,8 @@ const DEFAULT_PRODUCTS = [
 const state = {
   products: DEFAULT_PRODUCTS.map(normalizeProduct), user: null, profile: {}, role: "customer", favorites: new Set(),
   authReady: false, productsReady: true, selectedBrands: new Set(), selectedCategory: "all", newCategory: "all",
-  priceMin: null, priceMax: null, pendingFavorite: sessionStorage.getItem("gc_pending_favorite") || "", stopFavorites: null
+  priceMin: null, priceMax: null,
+  pendingFavorite: sessionStorage.getItem("gc_pending_favorite") || "", stopFavorites: null
 };
 
 const esc = (value="") => String(value).replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[char]);
@@ -59,7 +61,7 @@ function numericPrice(value) {
   if (!raw || norm(raw) === "consultar") return null;
   const cleaned = raw.replace(/[^\d.,-]/g, "");
   if (!cleaned) return null;
-  const normalized = cleaned.includes(",") ? cleaned.replace(/\./g, "").replace(",", ".") : cleaned;
+  const normalized = cleaned.includes(",") ? cleaned.replace(/\./g, "").replace(",", ".") : /^-?\d{1,3}(\.\d{3})+$/.test(cleaned) ? cleaned.replace(/\./g, "") : cleaned;
   const numeric = Number(normalized);
   return Number.isFinite(numeric) ? numeric : null;
 }
@@ -75,6 +77,12 @@ function formatPrice(value) {
   return new Intl.NumberFormat("es-ES", {style:"currency",currency:"EUR"}).format(numeric);
 }
 function activeProducts() { return state.products.filter(product => product.active !== false); }
+function productSearchText(product) { return norm([product.name, product.brand, CATEGORY_LABELS[product.category], product.description, product.sizes.join(" ")].join(" ")); }
+function productMatchesPrice(product) {
+  if (state.priceMin === null && state.priceMax === null) return true;
+  const value = numericPrice(product.price);
+  return value !== null && (state.priceMin === null || value >= state.priceMin) && (state.priceMax === null || value <= state.priceMax);
+}
 function currentFile() { return location.pathname.split("/").pop() || "index.html"; }
 
 function initChrome() {
@@ -166,7 +174,14 @@ function initCatalog() {
   document.querySelector("#emptyClear")?.addEventListener("click", clearFilters);
   document.querySelector("#mobileFilterToggle")?.addEventListener("click", event => {
     const panel = document.querySelector("#catalogFilters");
-    const open = panel.classList.toggle("open"); event.currentTarget.setAttribute("aria-expanded", String(open));
+    const open = panel.classList.toggle("open");
+    event.currentTarget.setAttribute("aria-expanded", String(open));
+    document.body.classList.toggle("catalog-filter-open", open);
+  });
+  document.querySelector("#closeFilters")?.addEventListener("click", () => {
+    document.querySelector("#catalogFilters")?.classList.remove("open");
+    document.querySelector("#mobileFilterToggle")?.setAttribute("aria-expanded", "false");
+    document.body.classList.remove("catalog-filter-open");
   });
   renderBrandOptions();
 }
@@ -178,7 +193,7 @@ function renderBrandOptions() {
   root.innerHTML = brands.length ? brands.map(brand => {
     const selected = state.selectedBrands.has(brand);
     const initials = brand.split(/[\s&()-]+/).filter(Boolean).slice(0,2).map(part => part[0]).join("").toUpperCase();
-    return `<label class="brand-option ${selected ? "selected" : ""}"><input type="checkbox" value="${esc(brand)}" ${selected ? "checked" : ""}><span class="initials">${esc(initials)}</span><span class="name">${esc(brand)}</span><i class="check">✓</i></label>`;
+    return `<label class="brand-option ${selected ? "selected" : ""}" data-brand-name="${esc(brand)}"><input type="checkbox" value="${esc(brand)}" ${selected ? "checked" : ""}><span class="initials">${esc(initials)}</span><span class="name">${esc(brand)}</span><em class="brand-count">0</em><i class="check">✓</i></label>`;
   }).join("") : '<p class="brand-no-results">No hay marcas con ese nombre.</p>';
   root.querySelectorAll("input").forEach(input => input.addEventListener("change", () => {
     input.checked ? state.selectedBrands.add(input.value) : state.selectedBrands.delete(input.value);
@@ -186,6 +201,7 @@ function renderBrandOptions() {
   }));
   const count = document.querySelector("#brandSelectedCount");
   if (count) count.textContent = `${state.selectedBrands.size} seleccionada${state.selectedBrands.size === 1 ? "" : "s"}`;
+  renderFilterMetadata(norm(document.querySelector("#catalogSearch")?.value));
 }
 
 function renderCatalog() {
@@ -194,12 +210,8 @@ function renderCatalog() {
   const search = document.querySelector("#catalogSearch");
   const term = norm(search?.value);
   const sort = document.querySelector("#catalogSort")?.value || "newest";
-  const hasPriceRange = state.priceMin !== null || state.priceMax !== null;
   let products = activeProducts().filter(product => {
-    const searchable = norm([product.name, product.brand, CATEGORY_LABELS[product.category], product.description, product.sizes.join(" ")].join(" "));
-    const productPrice = numericPrice(product.price);
-    const matchesPrice = !hasPriceRange || (productPrice !== null && (state.priceMin === null || productPrice >= state.priceMin) && (state.priceMax === null || productPrice <= state.priceMax));
-    return (!term || searchable.includes(term)) && (state.selectedCategory === "all" || product.category === state.selectedCategory) && (!state.selectedBrands.size || state.selectedBrands.has(product.brand)) && matchesPrice;
+    return (!term || productSearchText(product).includes(term)) && (state.selectedCategory === "all" || product.category === state.selectedCategory) && (!state.selectedBrands.size || state.selectedBrands.has(product.brand)) && productMatchesPrice(product);
   });
   if (sort === "name") products.sort((a,b) => a.name.localeCompare(b.name,"es"));
   else if (sort.startsWith("price")) products.sort((a,b) => {
@@ -213,8 +225,32 @@ function renderCatalog() {
   grid.classList.toggle("hidden", !products.length);
   document.querySelector("#catalogEmpty")?.classList.toggle("hidden", Boolean(products.length));
   const result = document.querySelector("#resultCount"); if (result) result.textContent = products.length;
+  const liveResult = document.querySelector("#filterLiveResult"); if (liveResult) liveResult.textContent = products.length;
+  const applyResult = document.querySelector("#filterApplyCount"); if (applyResult) applyResult.textContent = products.length;
+  renderFilterMetadata(term);
   renderPriceControls();
   renderActiveChips(term);
+}
+
+function renderFilterMetadata(term) {
+  const categoryBase = activeProducts().filter(product => (!term || productSearchText(product).includes(term)) && (!state.selectedBrands.size || state.selectedBrands.has(product.brand)) && productMatchesPrice(product));
+  document.querySelectorAll("[data-category]").forEach(button => {
+    const category = button.dataset.category;
+    const count = category === "all" ? categoryBase.length : categoryBase.filter(product => product.category === category).length;
+    const badge = button.querySelector("[data-category-count]");
+    if (badge) badge.textContent = count;
+  });
+  const categoryStatus = document.querySelector("#categoryFilterStatus");
+  if (categoryStatus) categoryStatus.textContent = state.selectedCategory === "all" ? "Todas" : CATEGORY_LABELS[state.selectedCategory] || "Categoría";
+
+  const brandBase = activeProducts().filter(product => (!term || productSearchText(product).includes(term)) && (state.selectedCategory === "all" || product.category === state.selectedCategory) && productMatchesPrice(product));
+  document.querySelectorAll(".brand-option[data-brand-name]").forEach(option => {
+    const brand = option.dataset.brandName;
+    const count = brandBase.filter(product => product.brand === brand).length;
+    const badge = option.querySelector(".brand-count");
+    if (badge) badge.textContent = count;
+    option.classList.toggle("unavailable", count === 0 && !state.selectedBrands.has(brand));
+  });
 }
 
 function renderPriceControls() {

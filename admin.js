@@ -12,9 +12,10 @@ const db = getFirestore(firebaseApp);
 const supabase = createClient(SUPABASE_URL,SUPABASE_KEY,{accessToken:async()=>auth.currentUser?auth.currentUser.getIdToken(false):null});
 
 const BRANDS = ["Louis Vuitton","Dior","Gucci","Prada","Balenciaga","Versace","Dolce & Gabbana","Fendi","Burberry","Givenchy","Saint Laurent (YSL)","Loewe","Celine","Valentino","Hermès","Chanel","Miu Miu","Maison Margiela","Alexander McQueen","Moncler","Stone Island","Palm Angels","Amiri","Off-White","Fear of God","Supreme","Chrome Hearts","Gallery Dept.","Rhude","Denim Tears","Essentials","Corteiz","Trapstar","Nike","Jordan","Adidas","New Balance","Cartier","Kenzo","Alo","Bottega Desires","Nude Project","Purple"];
-const CATEGORIES = [["camisetas","Camisetas","CM"],["sudaderas","Sudaderas","SD"],["polos","Polos","PO"],["camisetas-futbol","Camisetas de fútbol","CF"],["abrigos","Abrigos","AB"],["zapatos","Zapatos","ZP"],["pantalones-cortos","Pantalones cortos","PC"],["pantalones-largos","Pantalones largos","PL"]];
+const CATEGORIES = [["camisetas","Camisetas","CM"],["sudaderas","Sudaderas","SD"],["polos","Polos","PO"],["camisetas-futbol","Camisetas de fútbol","CF"],["abrigos","Abrigos","AB"],["zapatos","Zapatos","ZP"],["pantalones-cortos","Pantalones cortos","PC"],["pantalones-largos","Pantalones largos","PL"],["bolsos","Bolsos","BO"],["carteras","Carteras","CR"],["rinoneras","Riñoneras","RN"]];
 const CATEGORY_LABELS = Object.fromEntries(CATEGORIES.map(item=>[item[0],item[1]]));
-const LEGACY_CATEGORIES = {vestidos:"camisetas",tops:"camisetas",conjuntos:"sudaderas",chaquetas:"abrigos",calzado:"zapatos",pantalones:"pantalones-largos"};
+const SINGLE_SIZE_CATEGORIES = new Set(["bolsos","carteras","rinoneras"]);
+const LEGACY_CATEGORIES = {vestidos:"camisetas",tops:"camisetas",conjuntos:"sudaderas",chaquetas:"abrigos",calzado:"zapatos",pantalones:"pantalones-largos",rinonera:"rinoneras",cartera:"carteras",bolso:"bolsos"};
 const SIZES = ["XS","S","M","L","XL","XXL","Única","36","37","38","39","40","41","42","43","44","45"];
 const DEFAULT_PRODUCTS = [
   {id:"1",name:"Camiseta azul GC",brand:"Dior",category:"camisetas",price:"Consultar",image:"producto-1.jpg",badge:"NUEVO",sizes:["S","M","L"],active:true,description:"Una pieza especial seleccionada por GinesCloset.",createdOrder:5},
@@ -86,7 +87,7 @@ function bindEditor(){
   const form=root.querySelector("#productForm"),brandInput=form.querySelector("#brandInput"),brandRoot=form.querySelector("#brandResults");
   root.querySelector("#backCatalog").addEventListener("click",()=>goTo("catalog"));root.querySelector("#discardEditor").addEventListener("click",()=>goTo("catalog"));
   form.addEventListener("input",()=>{state.dirty=true;updatePreview();scheduleAutosave();});
-  form.querySelectorAll("[data-category-value]").forEach(button=>button.addEventListener("click",()=>{form.elements.category.value=button.dataset.categoryValue;form.querySelectorAll(".category-tile").forEach(item=>item.classList.toggle("selected",item===button));state.dirty=true;updatePreview();scheduleAutosave();}));
+  form.querySelectorAll("[data-category-value]").forEach(button=>button.addEventListener("click",()=>{const category=button.dataset.categoryValue;form.elements.category.value=category;form.querySelectorAll(".category-tile").forEach(item=>item.classList.toggle("selected",item===button));if(SINGLE_SIZE_CATEGORIES.has(category)){form.querySelectorAll('#sizeMenu input').forEach(input=>input.checked=input.value==="Única");renderSizeChips();}state.dirty=true;updatePreview();scheduleAutosave();}));
   brandInput.addEventListener("focus",()=>{brandRoot.innerHTML=brandResults(brandInput.value,brandInput.value);brandRoot.classList.remove("hidden");bindBrandChoices();});
   brandInput.addEventListener("input",()=>{brandRoot.innerHTML=brandResults(brandInput.value,brandInput.value);brandRoot.classList.remove("hidden");bindBrandChoices();});
   function bindBrandChoices(){brandRoot.querySelectorAll("[data-brand]").forEach(button=>button.addEventListener("click",()=>{brandInput.value=button.dataset.brand;brandRoot.classList.add("hidden");state.dirty=true;updatePreview();scheduleAutosave();}));}

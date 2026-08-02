@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8"><meta name="gc-release" content="2026.08.02-r14"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8"><meta name="gc-release" content="2026.08.02-r15"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Explora el catálogo completo de GinesCloset."><meta name="theme-color" content="#07152f">
   <title>Catálogo | GinesCloset</title><link rel="icon" href="ginescloset-logo.png">
-  <link rel="stylesheet" href="styles.css?v=18.0"><script type="module" src="app.js?v=18.0"></script>
+  <link rel="stylesheet" href="styles.css?v=19.0"><script type="module" src="app.js?v=19.0"></script>
 </head>
 <body data-page="catalog">
   <a class="skip-link" href="#mainContent">Saltar al contenido</a>
@@ -18,25 +18,28 @@
     <section class="page-intro section-shell"><p class="kicker blue">COLECCIÓN GINESCLOSET</p><div><h1>Encuentra tu<br><em>próxima pieza.</em></h1><p>Busca por nombre, firma, categoría o talla. Combina varios filtros hasta encontrar exactamente lo que buscas.</p></div></section>
 
     <section class="catalog-layout section-shell">
-      <button class="mobile-filter-button" id="mobileFilterToggle" type="button" aria-expanded="false" aria-controls="catalogFilters"><span>Filtros</span><b id="mobileFilterCount">0</b></button>
+      <button class="mobile-filter-button" id="mobileFilterToggle" type="button" aria-expanded="false" aria-controls="catalogFilters"><span><i>⌁</i> Filtros</span><b id="mobileFilterCount">0</b></button>
       <aside class="filter-panel" id="catalogFilters">
-        <div class="filter-title"><div><p>AFINA TU BÚSQUEDA</p><b><span id="activeFilterCount">0</span></b></div><button id="clearFilters" type="button">Limpiar todo</button></div>
+        <div class="filter-title"><div><p>FILTROS INTELIGENTES</p><strong>Afina tu búsqueda</strong><small><b id="filterLiveResult">0</b> resultados disponibles</small></div><div class="filter-title-actions"><span id="activeFilterCount">0 activos</span><button id="clearFilters" type="button">Limpiar todo</button></div></div>
 
-        <details class="filter-group" open><summary><span><i>01</i>Categorías</span><b>−</b></summary><div class="category-options" id="categoryOptions">
-          <button class="active" data-category="all" type="button"><i>◇</i><span>Todas</span><b></b></button>
-          <button data-category="camisetas" type="button"><i>CM</i><span>Camisetas</span><b></b></button>
-          <button data-category="sudaderas" type="button"><i>SD</i><span>Sudaderas</span><b></b></button>
-          <button data-category="polos" type="button"><i>PO</i><span>Polos</span><b></b></button>
-          <button data-category="camisetas-futbol" type="button"><i>CF</i><span>Camisetas de fútbol</span><b></b></button>
-          <button data-category="abrigos" type="button"><i>AB</i><span>Abrigos</span><b></b></button>
-          <button data-category="zapatos" type="button"><i>ZP</i><span>Zapatos</span><b></b></button>
-          <button data-category="pantalones-cortos" type="button"><i>PC</i><span>Pantalones cortos</span><b></b></button>
-          <button data-category="pantalones-largos" type="button"><i>PL</i><span>Pantalones largos</span><b></b></button>
+        <details class="filter-group" open><summary><span><i>01</i>Categorías</span><small id="categoryFilterStatus">Todas</small><b>−</b></summary><div class="category-options" id="categoryOptions">
+          <button class="active category-all" data-category="all" type="button"><i>◇</i><span>Todas las categorías</span><b data-category-count>0</b></button>
+          <button data-category="camisetas" type="button"><i>CM</i><span>Camisetas</span><b data-category-count>0</b></button>
+          <button data-category="sudaderas" type="button"><i>SD</i><span>Sudaderas</span><b data-category-count>0</b></button>
+          <button data-category="polos" type="button"><i>PO</i><span>Polos</span><b data-category-count>0</b></button>
+          <button data-category="camisetas-futbol" type="button"><i>CF</i><span>Camisetas de fútbol</span><b data-category-count>0</b></button>
+          <button data-category="abrigos" type="button"><i>AB</i><span>Abrigos</span><b data-category-count>0</b></button>
+          <button data-category="zapatos" type="button"><i>ZP</i><span>Zapatos</span><b data-category-count>0</b></button>
+          <button data-category="pantalones-cortos" type="button"><i>PC</i><span>Pantalones cortos</span><b data-category-count>0</b></button>
+          <button data-category="pantalones-largos" type="button"><i>PL</i><span>Pantalones largos</span><b data-category-count>0</b></button>
+          <button data-category="bolsos" type="button"><i>BO</i><span>Bolsos</span><b data-category-count>0</b></button>
+          <button data-category="carteras" type="button"><i>CR</i><span>Carteras</span><b data-category-count>0</b></button>
+          <button data-category="rinoneras" type="button"><i>RN</i><span>Riñoneras</span><b data-category-count>0</b></button>
         </div></details>
 
-        <details class="filter-group" open><summary><span><i>02</i>Marcas</span><small id="brandSelectedCount">0 seleccionadas</small><b>−</b></summary><div class="brand-filter"><label class="filter-search"><span>⌕</span><input id="brandSearch" type="search" placeholder="Buscar marca" autocomplete="off"></label><div class="brand-options" id="brandOptions"></div></div></details>
+        <details class="filter-group"><summary><span><i>02</i>Marcas</span><small id="brandSelectedCount">0 seleccionadas</small><b>−</b></summary><div class="brand-filter"><label class="filter-search"><span>⌕</span><input id="brandSearch" type="search" placeholder="Buscar marca" autocomplete="off"></label><div class="brand-options" id="brandOptions"></div></div></details>
 
-        <details class="filter-group price-group" open><summary><span><i>03</i>Precio</span><small id="priceFilterStatus">Cualquier precio</small><b>−</b></summary><div class="price-filter">
+        <details class="filter-group price-group"><summary><span><i>03</i>Precio</span><small id="priceFilterStatus">Cualquier precio</small><b>−</b></summary><div class="price-filter">
           <div class="price-budget-head"><span>€</span><div><b>Define tu presupuesto</b><small>Combina un mínimo y un máximo</small></div></div>
           <div class="price-fields">
             <label><span>Precio mínimo</span><span class="price-input"><input id="priceMin" type="number" min="0" step="1" inputmode="decimal" placeholder="Desde" aria-label="Precio mínimo"><b>€</b></span></label>
@@ -51,6 +54,7 @@
           </div>
           <p class="price-note"><span>i</span> Los artículos “Consultar” se ocultan al aplicar un rango.</p>
         </div></details>
+        <div class="filter-mobile-actions"><button id="closeFilters" type="button">Ver <b id="filterApplyCount">0</b> artículos</button></div>
       </aside>
 
       <div class="catalog-content">
