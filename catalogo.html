@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8"><meta name="gc-release" content="2026.08.02-r13"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8"><meta name="gc-release" content="2026.08.02-r14"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Explora el catálogo completo de GinesCloset."><meta name="theme-color" content="#07152f">
   <title>Catálogo | GinesCloset</title><link rel="icon" href="ginescloset-logo.png">
-  <link rel="stylesheet" href="styles.css?v=17.0"><script type="module" src="app.js?v=17.0"></script>
+  <link rel="stylesheet" href="styles.css?v=18.0"><script type="module" src="app.js?v=18.0"></script>
 </head>
 <body data-page="catalog">
   <a class="skip-link" href="#mainContent">Saltar al contenido</a>
@@ -36,18 +36,20 @@
 
         <details class="filter-group" open><summary><span><i>02</i>Marcas</span><small id="brandSelectedCount">0 seleccionadas</small><b>−</b></summary><div class="brand-filter"><label class="filter-search"><span>⌕</span><input id="brandSearch" type="search" placeholder="Buscar marca" autocomplete="off"></label><div class="brand-options" id="brandOptions"></div></div></details>
 
-        <details class="filter-group" open><summary><span><i>03</i>Precio</span><small id="priceFilterStatus">Cualquier precio</small><b>−</b></summary><div class="price-filter">
+        <details class="filter-group price-group" open><summary><span><i>03</i>Precio</span><small id="priceFilterStatus">Cualquier precio</small><b>−</b></summary><div class="price-filter">
+          <div class="price-budget-head"><span>€</span><div><b>Define tu presupuesto</b><small>Combina un mínimo y un máximo</small></div></div>
           <div class="price-fields">
-            <label><span>Desde</span><span class="price-input"><input id="priceMin" type="number" min="0" step="1" inputmode="decimal" placeholder="0" aria-label="Precio mínimo"><b>€</b></span></label>
-            <label><span>Hasta</span><span class="price-input"><input id="priceMax" type="number" min="0" step="1" inputmode="decimal" placeholder="Sin límite" aria-label="Precio máximo"><b>€</b></span></label>
+            <label><span>Precio mínimo</span><span class="price-input"><input id="priceMin" type="number" min="0" step="1" inputmode="decimal" placeholder="Desde" aria-label="Precio mínimo"><b>€</b></span></label>
+            <label><span>Precio máximo</span><span class="price-input"><input id="priceMax" type="number" min="0" step="1" inputmode="decimal" placeholder="Hasta" aria-label="Precio máximo"><b>€</b></span></label>
           </div>
+          <p class="price-presets-title">O elige un rango rápido</p>
           <div class="price-presets" aria-label="Rangos de precio rápidos">
             <button type="button" data-price-min="" data-price-max="50">Hasta 50 €</button>
             <button type="button" data-price-min="50" data-price-max="100">50–100 €</button>
             <button type="button" data-price-min="100" data-price-max="250">100–250 €</button>
             <button type="button" data-price-min="250" data-price-max="">Más de 250 €</button>
           </div>
-          <p class="price-note">Al elegir un rango se muestran los artículos con precio publicado.</p>
+          <p class="price-note"><span>i</span> Los artículos “Consultar” se ocultan al aplicar un rango.</p>
         </div></details>
       </aside>
 
