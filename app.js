@@ -34,7 +34,7 @@ const DEFAULT_PRODUCTS = [
 const state = {
   products: DEFAULT_PRODUCTS.map(normalizeProduct), user: null, profile: {}, role: "customer", favorites: new Set(),
   authReady: false, productsReady: true, selectedBrands: new Set(), selectedCategory: "all", newCategory: "all",
-  pendingFavorite: sessionStorage.getItem("gc_pending_favorite") || "", stopFavorites: null
+  priceMin: null, priceMax: null, pendingFavorite: sessionStorage.getItem("gc_pending_favorite") || "", stopFavorites: null
 };
 
 const esc = (value="") => String(value).replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[char]);
@@ -54,11 +54,25 @@ function normalizeProduct(product) {
   normalized.active = product.active !== false;
   return normalized;
 }
+function numericPrice(value) {
+  const raw = String(value ?? "").trim();
+  if (!raw || norm(raw) === "consultar") return null;
+  const cleaned = raw.replace(/[^\d.,-]/g, "");
+  if (!cleaned) return null;
+  const normalized = cleaned.includes(",") ? cleaned.replace(/\./g, "").replace(",", ".") : cleaned;
+  const numeric = Number(normalized);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+function priceBoundary(value) {
+  if (String(value ?? "").trim() === "") return null;
+  const numeric = numericPrice(value);
+  return numeric !== null && numeric >= 0 ? numeric : null;
+}
 function formatPrice(value) {
   const raw = String(value ?? "").trim();
-  if (!raw || norm(raw) === "consultar") return "Consultar";
-  const numeric = Number(raw.replace(/\./g, "").replace(",", "."));
-  return Number.isFinite(numeric) ? new Intl.NumberFormat("es-ES", {style:"currency",currency:"EUR"}).format(numeric) : raw;
+  const numeric = numericPrice(value);
+  if (numeric === null) return raw && norm(raw) !== "consultar" ? raw : "Consultar";
+  return new Intl.NumberFormat("es-ES", {style:"currency",currency:"EUR"}).format(numeric);
 }
 function activeProducts() { return state.products.filter(product => product.active !== false); }
 function currentFile() { return location.pathname.split("/").pop() || "index.html"; }
@@ -125,7 +139,12 @@ function initCatalog() {
   const requestedCategory = params.get("categoria") || "all";
   state.selectedCategory = ["all", ...CATEGORIES.map(item => item[0])].includes(requestedCategory) ? requestedCategory : "all";
   (params.get("marcas") || "").split("|").filter(brand => BRANDS.includes(brand)).forEach(brand => state.selectedBrands.add(brand));
+  state.priceMin = priceBoundary(params.get("precioMin"));
+  state.priceMax = priceBoundary(params.get("precioMax"));
   search.value = params.get("q") || "";
+  const priceMinInput = document.querySelector("#priceMin"), priceMaxInput = document.querySelector("#priceMax");
+  if (priceMinInput) priceMinInput.value = state.priceMin ?? "";
+  if (priceMaxInput) priceMaxInput.value = state.priceMax ?? "";
   document.querySelectorAll("[data-category]").forEach(button => {
     button.classList.toggle("active", button.dataset.category === state.selectedCategory);
     button.addEventListener("click", () => { state.selectedCategory = button.dataset.category; renderCatalog(); renderBrandOptions(); });
@@ -134,6 +153,15 @@ function initCatalog() {
   search.addEventListener("keydown", event => { if (event.key === "Escape") { search.value = ""; renderCatalog(); } });
   document.querySelector("#catalogSort")?.addEventListener("change", renderCatalog);
   document.querySelector("#brandSearch")?.addEventListener("input", renderBrandOptions);
+  priceMinInput?.addEventListener("input", () => { state.priceMin = priceBoundary(priceMinInput.value); renderCatalog(); });
+  priceMaxInput?.addEventListener("input", () => { state.priceMax = priceBoundary(priceMaxInput.value); renderCatalog(); });
+  document.querySelectorAll("[data-price-min]").forEach(button => button.addEventListener("click", () => {
+    const nextMin = priceBoundary(button.dataset.priceMin), nextMax = priceBoundary(button.dataset.priceMax);
+    const alreadySelected = state.priceMin === nextMin && state.priceMax === nextMax;
+    state.priceMin = alreadySelected ? null : nextMin;
+    state.priceMax = alreadySelected ? null : nextMax;
+    renderCatalog();
+  }));
   document.querySelector("#clearFilters")?.addEventListener("click", clearFilters);
   document.querySelector("#emptyClear")?.addEventListener("click", clearFilters);
   document.querySelector("#mobileFilterToggle")?.addEventListener("click", event => {
@@ -166,26 +194,47 @@ function renderCatalog() {
   const search = document.querySelector("#catalogSearch");
   const term = norm(search?.value);
   const sort = document.querySelector("#catalogSort")?.value || "newest";
+  const hasPriceRange = state.priceMin !== null || state.priceMax !== null;
   let products = activeProducts().filter(product => {
     const searchable = norm([product.name, product.brand, CATEGORY_LABELS[product.category], product.description, product.sizes.join(" ")].join(" "));
-    return (!term || searchable.includes(term)) && (state.selectedCategory === "all" || product.category === state.selectedCategory) && (!state.selectedBrands.size || state.selectedBrands.has(product.brand));
+    const productPrice = numericPrice(product.price);
+    const matchesPrice = !hasPriceRange || (productPrice !== null && (state.priceMin === null || productPrice >= state.priceMin) && (state.priceMax === null || productPrice <= state.priceMax));
+    return (!term || searchable.includes(term)) && (state.selectedCategory === "all" || product.category === state.selectedCategory) && (!state.selectedBrands.size || state.selectedBrands.has(product.brand)) && matchesPrice;
   });
   if (sort === "name") products.sort((a,b) => a.name.localeCompare(b.name,"es"));
   else if (sort.startsWith("price")) products.sort((a,b) => {
-    const one = Number(String(a.price).replace(",",".")) || 999999, two = Number(String(b.price).replace(",",".")) || 999999;
+    const one = numericPrice(a.price), two = numericPrice(b.price);
+    if (one === null && two === null) return 0;
+    if (one === null) return 1;
+    if (two === null) return -1;
     return sort === "price-low" ? one-two : two-one;
   }); else products.sort((a,b) => Number(b.createdOrder || 0) - Number(a.createdOrder || 0));
   grid.innerHTML = products.map(productCard).join("");
   grid.classList.toggle("hidden", !products.length);
   document.querySelector("#catalogEmpty")?.classList.toggle("hidden", Boolean(products.length));
   const result = document.querySelector("#resultCount"); if (result) result.textContent = products.length;
+  renderPriceControls();
   renderActiveChips(term);
+}
+
+function renderPriceControls() {
+  const minInput = document.querySelector("#priceMin"), maxInput = document.querySelector("#priceMax");
+  if (minInput && document.activeElement !== minInput) minInput.value = state.priceMin ?? "";
+  if (maxInput && document.activeElement !== maxInput) maxInput.value = state.priceMax ?? "";
+  document.querySelectorAll("[data-price-min]").forEach(button => {
+    const active = state.priceMin === priceBoundary(button.dataset.priceMin) && state.priceMax === priceBoundary(button.dataset.priceMax);
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+  const status = document.querySelector("#priceFilterStatus");
+  if (status) status.textContent = state.priceMin !== null && state.priceMax !== null ? `${state.priceMin}–${state.priceMax} €` : state.priceMin !== null ? `Desde ${state.priceMin} €` : state.priceMax !== null ? `Hasta ${state.priceMax} €` : "Cualquier precio";
 }
 
 function renderActiveChips(term) {
   const chips = [];
   if (state.selectedCategory !== "all") chips.push({type:"category",value:state.selectedCategory,label:CATEGORY_LABELS[state.selectedCategory]});
   state.selectedBrands.forEach(brand => chips.push({type:"brand",value:brand,label:brand}));
+  if (state.priceMin !== null || state.priceMax !== null) chips.push({type:"price",value:"",label:state.priceMin !== null && state.priceMax !== null ? `${state.priceMin}–${state.priceMax} €` : state.priceMin !== null ? `Desde ${state.priceMin} €` : `Hasta ${state.priceMax} €`});
   if (term) chips.push({type:"search",value:"",label:`“${document.querySelector("#catalogSearch")?.value}”`});
   const root = document.querySelector("#activeChips");
   if (root) {
@@ -194,6 +243,7 @@ function renderActiveChips(term) {
       const type = button.dataset.removeFilter;
       if (type === "brand") state.selectedBrands.delete(button.dataset.value);
       if (type === "category") state.selectedCategory = "all";
+      if (type === "price") { state.priceMin = null; state.priceMax = null; }
       if (type === "search") document.querySelector("#catalogSearch").value = "";
       renderBrandOptions(); renderCatalog();
     }));
@@ -204,11 +254,13 @@ function renderActiveChips(term) {
   if (document.querySelector("#catalogSearch")?.value) params.set("q", document.querySelector("#catalogSearch").value);
   if (state.selectedCategory !== "all") params.set("categoria", state.selectedCategory);
   if (state.selectedBrands.size) params.set("marcas", [...state.selectedBrands].join("|"));
+  if (state.priceMin !== null) params.set("precioMin", String(state.priceMin));
+  if (state.priceMax !== null) params.set("precioMax", String(state.priceMax));
   history.replaceState(null, "", `${location.pathname}${params.size ? `?${params}` : ""}`);
 }
 
 function clearFilters() {
-  state.selectedBrands.clear(); state.selectedCategory = "all";
+  state.selectedBrands.clear(); state.selectedCategory = "all"; state.priceMin = null; state.priceMax = null;
   const search = document.querySelector("#catalogSearch"); if (search) search.value = "";
   const brandSearch = document.querySelector("#brandSearch"); if (brandSearch) brandSearch.value = "";
   renderBrandOptions(); renderCatalog();
