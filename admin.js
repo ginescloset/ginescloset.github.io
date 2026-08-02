@@ -16,7 +16,13 @@ const CATEGORIES = [["camisetas","Camisetas","CM"],["sudaderas","Sudaderas","SD"
 const CATEGORY_LABELS = Object.fromEntries(CATEGORIES.map(item=>[item[0],item[1]]));
 const SINGLE_SIZE_CATEGORIES = new Set(["bolsos","carteras","rinoneras"]);
 const LEGACY_CATEGORIES = {vestidos:"camisetas",tops:"camisetas",conjuntos:"sudaderas",chaquetas:"abrigos",calzado:"zapatos",pantalones:"pantalones-largos",rinonera:"rinoneras",cartera:"carteras",bolso:"bolsos"};
-const SIZES = ["XS","S","M","L","XL","XXL","Única","36","37","38","39","40","41","42","43","44","45"];
+const SIZE_GROUPS = [
+  {id:"adult-clothes",label:"Ropa de adulto",hint:"Tallas internacionales",sizes:["XS","S","M","L","XL","XXL"]},
+  {id:"kids-clothes",label:"Ropa infantil",hint:"Talla por edad",sizes:["2 años","3 años","4 años","5 años","6 años","8 años","10 años","12 años","14 años","16 años"]},
+  {id:"kids-shoes",label:"Calzado infantil",hint:"Numeración europea",sizes:["18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35"]},
+  {id:"adult-shoes",label:"Calzado de adulto",hint:"Numeración europea",sizes:["36","37","38","39","40","41","42","43","44","45"]},
+  {id:"single-size",label:"Talla única",hint:"Accesorios y complementos",sizes:["Única"]}
+];
 const DEFAULT_PRODUCTS = [
   {id:"1",name:"Camiseta azul GC",brand:"Dior",category:"camisetas",price:"Consultar",image:"producto-1.jpg",badge:"NUEVO",sizes:["S","M","L"],active:true,description:"Una pieza especial seleccionada por GinesCloset.",createdOrder:5},
   {id:"2",name:"Sudadera cielo",brand:"Prada",category:"sudaderas",price:"Consultar",image:"producto-2.jpg",badge:"DESTACADO",sizes:["S","M","L"],active:true,description:"Una prenda versátil con personalidad propia.",createdOrder:4},
@@ -91,7 +97,7 @@ function renderEditor(){
   bindEditor();renderMedia();updatePreview();
 }
 function categoryTiles(selected){return CATEGORIES.map(item=>`<button class="category-tile ${selected===item[0]?"selected":""}" data-category-value="${item[0]}" type="button"><i>${item[2]}</i><span>${esc(item[1])}</span></button>`).join("");}
-function sizePicker(selected=[]){return `<div class="size-dropdown"><button class="size-trigger" id="sizeTrigger" type="button"><span class="size-chips" id="sizeChips">${selected.length?selected.map(size=>`<i class="size-chip">${esc(size)}</i>`).join(""):"Seleccionar tallas"}</span></button><div class="size-menu hidden" id="sizeMenu">${SIZES.map(size=>`<label><input type="checkbox" name="sizes" value="${esc(size)}" ${selected.includes(size)?"checked":""}>${esc(size)}</label>`).join("")}</div></div>`;}
+function sizePicker(selected=[]){return `<div class="size-dropdown"><button class="size-trigger" id="sizeTrigger" type="button"><span class="size-chips" id="sizeChips">${selected.length?selected.map(size=>`<i class="size-chip">${esc(size)}</i>`).join(""):"Seleccionar tallas"}</span></button><div class="size-menu hidden" id="sizeMenu">${SIZE_GROUPS.map(group=>`<section class="size-group" data-size-group="${group.id}"><header><div><b>${esc(group.label)}</b><small>${esc(group.hint)}</small></div><span>${group.sizes.length}</span></header><div class="size-group-grid">${group.sizes.map(size=>`<label class="size-option"><input type="checkbox" name="sizes" value="${esc(size)}" ${selected.includes(size)?"checked":""}><i>✓</i><span>${esc(size)}</span></label>`).join("")}</div></section>`).join("")}</div></div>`;}
 function brandResults(term,selected){const found=BRANDS.filter(brand=>norm(brand).includes(norm(term))).slice(0,15);return found.map(brand=>`<button class="${brand===selected?"selected":""}" data-brand="${esc(brand)}" type="button"><i>${esc(initials(brand))}</i><span>${esc(brand)}</span></button>`).join("")||'<p class="brand-no-results">No hay marcas con ese nombre.</p>';}
 
 function bindEditor(){
