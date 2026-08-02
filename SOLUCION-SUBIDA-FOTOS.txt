@@ -1,0 +1,20 @@
+SOLUCIÓN PARA «SUPABASE HA RECHAZADO LA FOTOGRAFÍA»
+====================================================
+
+1. Entra en tu proyecto de Supabase.
+2. Abre Authentication > Third-Party Auth.
+3. Comprueba que Firebase está activado con este Project ID:
+   ginescloset-12beb
+4. Abre SQL Editor y crea una consulta nueva.
+5. Abre el archivo supabase-storage-policies.sql incluido con la web.
+6. Copia todo su contenido, pégalo en SQL Editor y pulsa Run.
+7. Debajo deben aparecer el bucket catalog-media y cuatro reglas.
+8. Vuelve a GinesCloset, cierra la sesión de administrador y entra de nuevo.
+9. Publica el artículo otra vez. No necesitas volver a seleccionar la foto si
+   todavía aparece en el editor.
+
+IMPORTANTE
+----------
+No hagas público el permiso de subida para todo el mundo. Las reglas incluidas
+permiten ver las fotos públicamente, pero únicamente la cuenta
+ginescloset@gmail.com puede añadir, cambiar o eliminar archivos.

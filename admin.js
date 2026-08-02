@@ -136,6 +136,12 @@ function removeMedia(index){const[item]=state.media.splice(index,1);if(item?.exi
 
 async function uploadMedia(item,index,total){if(item.existing)return item;const extension="webp",path=`products/${state.user.uid}/${Date.now()}-${crypto.randomUUID()}.${extension}`;updateProgress(index,total);const result=await supabase.storage.from("catalog-media").upload(path,item.file,{cacheControl:"31536000",contentType:item.file.type,upsert:false});if(result.error)throw new Error(result.error.message||"Supabase ha rechazado la fotografía.");const publicUrl=supabase.storage.from("catalog-media").getPublicUrl(path).data.publicUrl;return{...item,url:publicUrl,path,existing:true,file:null};}
 function updateProgress(done,total){const box=root.querySelector("#uploadProgress"),bar=box?.querySelector("i");box?.classList.remove("hidden");if(bar)bar.style.width=`${Math.round(done/Math.max(1,total)*100)}%`;}
+function storageErrorMessage(error){
+  const message=String(error?.message||"").toLowerCase();
+  if(message.includes("row-level")||message.includes("policy"))return"Supabase ha bloqueado la fotografía. En Supabase abre SQL Editor, ejecuta completo el archivo supabase-storage-policies.sql y vuelve a iniciar sesión.";
+  if(message.includes("jwt")||message.includes("unauthorized")||message.includes("authorization"))return"Supabase no reconoce la sesión de Firebase. Activa Authentication > Third-Party Auth > Firebase con el proyecto ginescloset-12beb y vuelve a iniciar sesión.";
+  return`No se ha podido subir la fotografía: ${error?.message||"error desconocido"}`;
+}
 async function saveProduct(mode){
   const form=root.querySelector("#productForm"),errorBox=root.querySelector("#editorError"),buttons=[...form.querySelectorAll("[data-save]")];errorBox.classList.add("hidden");const product=draftFromForm();if(mode==="publish")product.active=true;
   if(!product.name){showEditorError("Escribe el nombre del artículo.");return;}if(!BRANDS.includes(product.brand)){showEditorError("Selecciona una marca de la lista.");return;}if(!CATEGORIES.some(item=>item[0]===product.category)){showEditorError("Selecciona una categoría.");return;}if(!product.sizes.length){showEditorError("Selecciona al menos una talla.");return;}if(!state.media.length){showEditorError("Añade al menos una fotografía.");return;}
@@ -146,7 +152,7 @@ async function saveProduct(mode){
     updateProgress(total,total);const reference=state.editId?doc(db,"products",state.editId):doc(collection(db,"products"));const images=state.media.map(item=>item.url),storagePaths=state.media.map(item=>item.path||"");await setDoc(reference,{...product,images,storagePaths,image:images[0],storagePath:storagePaths[0]||"",updatedAt:serverTimestamp(),createdAt:state.editId?(editorProduct()?.createdAt||serverTimestamp()):serverTimestamp()},{merge:Boolean(state.editId)});
     if(state.removedPaths.length)await supabase.storage.from("catalog-media").remove(state.removedPaths);
     localStorage.removeItem("gc_admin_draft");state.dirty=false;showToast(product.active?"Artículo publicado correctamente":"Borrador guardado","success");state.view="catalog";state.editId="";setActiveNav("catalog");renderCatalog();
-  }catch(error){console.error(error);if(uploadedPaths.length)await supabase.storage.from("catalog-media").remove(uploadedPaths);showEditorError(error.message.includes("row-level")?"Supabase ha rechazado la fotografía. Revisa las reglas de almacenamiento incluidas con la web.":`No se ha podido guardar: ${error.message}`);buttons.forEach(button=>button.disabled=false);if(pressed)pressed.textContent=mode==="draft"?"Guardar borrador":"Publicar artículo";}
+  }catch(error){console.error(error);if(uploadedPaths.length)await supabase.storage.from("catalog-media").remove(uploadedPaths);showEditorError(storageErrorMessage(error));buttons.forEach(button=>button.disabled=false);if(pressed)pressed.textContent=mode==="draft"?"Guardar borrador":"Publicar artículo";}
 }
 function showEditorError(message){const box=root.querySelector("#editorError");box.textContent=message;box.classList.remove("hidden");box.scrollIntoView({behavior:"smooth",block:"center"});}
 
