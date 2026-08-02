@@ -83,3 +83,29 @@
 /* Selector de tallas por familias */
 .size-menu{display:block;max-height:min(560px,calc(100vh - 190px));overflow-y:auto;padding:0;border-radius:12px;background:#f5f7fb}.size-group{padding:14px;background:#fff;border-bottom:1px solid var(--line)}.size-group:last-child{border-bottom:0}.size-group>header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}.size-group>header>div{display:grid;gap:1px}.size-group>header b{font-size:10px}.size-group>header small{color:var(--muted);font-size:7px}.size-group>header>span{min-width:23px;height:23px;padding:0 6px;border-radius:12px;background:#eef2ff;color:var(--blue);font:700 8px/23px var(--sans);text-align:center}.size-group-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.size-menu .size-option{position:relative;min-height:40px;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px;border:1px solid #dfe4ed;border-radius:8px;background:#fff;font-size:8px;cursor:pointer;transition:.18s}.size-menu .size-option:hover{border-color:#aab8ff;background:#f5f7ff;color:var(--blue)}.size-menu .size-option input{position:absolute!important;width:1px!important;height:1px!important;margin:0!important;padding:0!important;opacity:0;pointer-events:none}.size-menu .size-option i{width:15px;height:15px;border:1px solid #bdc6d6;border-radius:4px;display:grid;place-items:center;color:transparent;font-style:normal;font-size:9px;transition:.18s}.size-menu .size-option input:checked+i{border-color:var(--blue);background:var(--blue);color:#fff}.size-menu .size-option:has(input:checked){border-color:var(--blue);background:#eef2ff;color:var(--blue);font-weight:800}.size-menu .size-option:has(input:focus-visible){outline:3px solid rgba(24,60,255,.16);outline-offset:1px}.size-menu::-webkit-scrollbar{width:8px}.size-menu::-webkit-scrollbar-thumb{border:2px solid #fff;border-radius:8px;background:#cbd3e1}
 @media(max-width:600px){.size-group-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.size-menu{max-height:65vh}.size-group{padding:11px}}
+
+/* Detalle de artículo: respeta la proporción real y elimina el bloque vacío bajo la foto. */
+.product-gallery{align-items:start}.product-main-image{aspect-ratio:auto;display:grid;place-items:center;min-height:0}.product-main-image img{display:block;width:auto;max-width:100%;height:auto;max-height:78vh;object-fit:contain}.site-toast{width:max-content;max-width:min(92vw,560px);line-height:1.4;text-align:center}
+@media(max-width:600px){.product-gallery{display:flex;flex-direction:column}.product-main-image{order:1;width:100%}.product-thumbs{order:2;width:100%;flex-direction:row;overflow-x:auto;margin-top:8px}.product-thumb{flex:0 0 60px;width:60px}}
+
+/* Acceso al carrito: icono reconocible, texto y contador en toda la web. */
+.cart-shortcut{position:relative;min-width:auto;height:42px;padding:0 11px;border:1px solid currentColor;border-radius:24px;gap:7px;font-size:inherit;line-height:1;transition:background .2s,border-color .2s,color .2s,transform .2s}
+.cart-shortcut .cart-icon{display:grid;place-items:center;width:20px;height:20px;font:16px/1 "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif}
+.cart-shortcut .cart-shortcut-label{font-size:11px;font-weight:800;letter-spacing:.01em}
+.cart-shortcut b{flex:0 0 auto;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:var(--cyan);color:#06142f;font:800 10px/19px var(--sans);text-align:center}
+.site-header:not(.light) .cart-shortcut{background:rgba(5,15,34,.2);border-color:rgba(255,255,255,.58);color:#fff;backdrop-filter:blur(8px)}
+.site-header.light .cart-shortcut{border-color:#cfd6e2;background:#fff;color:var(--navy)}
+.cart-shortcut:hover,.cart-shortcut.active{transform:translateY(-1px);border-color:var(--blue)!important;background:var(--blue)!important;color:#fff!important}
+.cart-shortcut:hover b,.cart-shortcut.active b{background:#fff;color:var(--blue)}
+@media(max-width:1180px){.cart-shortcut{min-width:40px;padding:0 9px}.cart-shortcut-label{display:none}}
+@media(max-width:600px){.brand{font-size:19px}.cart-shortcut{width:38px;min-width:38px;height:38px;padding:0}.cart-shortcut .cart-icon{width:19px}.cart-shortcut b{position:absolute;right:-4px;top:-5px;min-width:17px;height:17px;padding:0 4px;font-size:9px;line-height:17px}}
+
+/* Tallas completas de adulto e infantil. */
+.size-menu{display:flex;flex-direction:column}
+.size-group[data-size-group="adult-clothes"]{order:1}.size-group[data-size-group="kids-clothes"]{order:2}.size-group[data-size-group="kids-shoes"]{order:3}.size-group[data-size-group="adult-shoes"]{order:4}.size-group[data-size-group="single-size"]{order:5}
+.size-menu[data-size-category="zapatos"] .size-group[data-size-group="kids-shoes"]{order:1}.size-menu[data-size-category="zapatos"] .size-group[data-size-group="adult-shoes"]{order:2}.size-menu[data-size-category="zapatos"] .size-group[data-size-group="kids-clothes"]{order:3}.size-menu[data-size-category="zapatos"] .size-group[data-size-group="adult-clothes"]{order:4}
+.size-menu[data-size-category="bolsos"] .size-group[data-size-group="single-size"],.size-menu[data-size-category="carteras"] .size-group[data-size-group="single-size"],.size-menu[data-size-category="rinoneras"] .size-group[data-size-group="single-size"]{order:0}
+.size-group[data-size-group^="kids-"]{background:linear-gradient(145deg,#f8fbff,#eef4ff)}
+.size-group[data-size-group^="kids-"]>header b{color:var(--blue)}
+.size-group[data-size-group^="kids-"]>header>span{background:linear-gradient(110deg,#2032ff,#087df0);color:#fff;box-shadow:0 6px 14px rgba(24,60,255,.16)}
+.size-group[data-size-group^="kids-"] .size-option{border-color:#d4def7}

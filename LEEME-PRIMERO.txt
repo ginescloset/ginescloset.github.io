@@ -1,0 +1,18 @@
+GINESCLOSET · LEEME PRIMERO
+===========================
+
+Este paquete contiene la web completa y su configuración.
+
+Hazlo en este orden:
+1. Descomprime el ZIP.
+2. Sube todos los archivos extraídos a la raíz de ginescloset.github.io.
+3. Abre CONFIGURACION-OBLIGATORIA.txt y sigue todos sus pasos.
+4. Publica firestore.rules en Firebase > Firestore Database > Reglas.
+5. Conecta Firebase en Supabase > Authentication > Third-Party Auth.
+6. Ejecuta supabase-storage-policies.sql completo en Supabase SQL Editor.
+7. Cierra sesión, pulsa Ctrl + F5 y prueba cliente y administrador.
+
+No subas el ZIP sin descomprimir.
+No pegues supabase-storage-policies.sql en Firebase.
+No pegues firestore.rules en Supabase.
+No publiques contraseñas ni la service_role key de Supabase.
