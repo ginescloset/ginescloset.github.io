@@ -1,4 +1,4 @@
-// GinesCloset · Firestore · versión 2026.08.02-r22
+// GinesCloset · Firestore · versión 2026.08.02-r28
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {

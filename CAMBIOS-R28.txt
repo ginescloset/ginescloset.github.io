@@ -1,0 +1,44 @@
+GINESCLOSET · CAMBIOS DE LA VERSIÓN R28
+========================================
+
+ARQUITECTURA CONSERVADA
+-----------------------
+- GitHub Pages para publicar la web estática.
+- Firebase Authentication para registro, Google e inicio de sesión.
+- Firestore para productos, perfiles, favoritos, carrito y solicitudes.
+- Supabase Storage exclusivamente para las fotografías del catálogo.
+- No existe pago ni compra directa en la web.
+- El cliente envía el carrito como solicitud y el administrador prepara la
+  oferta por WhatsApp.
+
+MEJORAS PÚBLICAS
+----------------
+- Hero más compacto y con mayor contraste.
+- Cabecera fija y compacta al desplazarse.
+- Iconos coherentes sin emojis.
+- Cabecera móvil simplificada.
+- Franja que explica carrito, solicitud y oferta por WhatsApp.
+- Productos destacados antes del manifiesto de marca.
+- Eliminación de bloques y llamadas a la acción repetidos.
+- Pie de página ampliado con explicación del proceso.
+- Buscador del catálogo más visible.
+- Filtros móviles en panel inferior.
+- Etiquetas de filtros activos eliminables.
+- Tarjetas completas pulsables y sin botones de acción.
+- Vista rápida desde el catálogo.
+- Galería de producto ampliable, contador y gestos en móvil.
+- Información de producto fija al desplazarse en escritorio.
+- Barra fija para añadir al carrito en móvil.
+- Mensajes explícitos indicando que no se realiza ningún pago en la web.
+
+MEJORAS DEL ADMINISTRADOR
+-------------------------
+- El editor permite indicar estado, color, material, medidas y autenticidad.
+- Se puede marcar un artículo como pieza única.
+- La vista previa refleja el estado y la condición de pieza única.
+- Los datos nuevos son opcionales y compatibles con artículos anteriores.
+
+ARCHIVO NUEVO
+-------------
+- icons.svg: iconos reutilizables y compatibles con GitHub Pages.
+

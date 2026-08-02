@@ -1,6 +1,6 @@
 GINESCLOSET · GUÍA COMPLETA DE PUBLICACIÓN Y CONFIGURACIÓN
 ===========================================================
-Versión de la web: 2026.08.02-r23
+Versión de la web: 2026.08.02-r28
 
 Esta guía deja funcionando:
 - La web estática en GitHub Pages.
@@ -11,6 +11,8 @@ Esta guía deja funcionando:
 - Ofertas preparadas por WhatsApp.
 - Panel de administración y gestión del catálogo.
 - Fotografías del catálogo almacenadas en Supabase.
+- Vista rápida, filtros móviles y fichas de artículo con galería ampliable.
+- Estado, color, material, medidas, autenticidad y pieza única desde el gestor.
 
 IMPORTANTE
 ----------
@@ -35,7 +37,7 @@ PASO 2 · SUBIR LA WEB COMPLETA A GITHUB
 3. Pulsa Add file y después Upload files.
 4. Arrastra TODOS los archivos que hay dentro de la carpeta extraída.
 5. Comprueba que index.html queda en la raíz del repositorio.
-6. En el mensaje escribe, por ejemplo: "Publicar GinesCloset r23".
+6. En el mensaje escribe, por ejemplo: "Publicar GinesCloset r28".
 7. Confirma con Commit changes.
 8. En Settings > Pages comprueba:
    - Source: Deploy from a branch.

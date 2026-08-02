@@ -1,7 +1,7 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="es" class="gc-auth-pending">
 <head>
-  <meta charset="utf-8"><meta name="gc-release" content="2026.08.02-r23">
+  <meta charset="utf-8"><meta name="gc-release" content="2026.08.02-r28">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="GinesCloset: una selección cuidada de moda de lujo y streetwear.">
   <meta property="og:title" content="GinesCloset | Piezas que hablan por ti">
@@ -12,8 +12,8 @@
   <link rel="icon" href="ginescloset-logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="preconnect" href="https://firestore.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap">
-  <link rel="stylesheet" href="styles.css?v=27.0">
-  <script type="module" src="app.js?v=27.0"></script>
+  <link rel="stylesheet" href="styles.css?v=28.0">
+  <script type="module" src="app.js?v=28.0"></script>
 </head>
 <body data-page="home">
   <a class="skip-link" href="#mainContent">Saltar al contenido</a>
@@ -24,11 +24,12 @@
       <a href="catalogo.html">Catálogo</a>
       <a href="novedades.html">Novedades</a>
       <a href="favoritos.html">Favoritos</a>
-      <a href="carrito.html">Carrito</a>
+      <a class="mobile-account-nav" data-account-link href="cuenta.html"><span data-account-label>Iniciar sesión</span></a>
     </nav>
     <div class="header-tools">
-      <a class="favorite-shortcut" href="favoritos.html" aria-label="Ver favoritos"><span aria-hidden="true">♡</span><b data-favorite-count>0</b></a>
-      <a class="cart-shortcut" href="carrito.html" aria-label="Ver carrito"><span class="cart-icon" aria-hidden="true">🛒</span><span class="cart-shortcut-label">Carrito</span><b data-cart-count>0</b></a>
+      <a class="header-icon search-shortcut" href="catalogo.html?buscar=1" aria-label="Buscar artículos"><svg aria-hidden="true"><use href="icons.svg#search"></use></svg></a>
+      <a class="header-icon favorite-shortcut" href="favoritos.html" aria-label="Ver favoritos"><svg aria-hidden="true"><use href="icons.svg#heart"></use></svg><b data-favorite-count>0</b></a>
+      <a class="header-icon cart-shortcut" href="carrito.html" aria-label="Ver carrito"><svg class="cart-icon" aria-hidden="true"><use href="icons.svg#bag"></use></svg><b data-cart-count>0</b></a>
       <a class="account-link" data-account-link href="cuenta.html"><span data-account-label>Iniciar sesión</span></a>
       <button class="nav-toggle" type="button" aria-controls="mainNav" aria-expanded="false" aria-label="Abrir menú"><span></span><span></span></button>
     </div>
@@ -44,28 +45,26 @@
         <p>Firmas icónicas, cultura urbana y prendas elegidas para quienes no necesitan parecerse a nadie.</p>
         <div class="hero-actions"><a class="button button-primary" href="catalogo.html">Explorar catálogo <span>→</span></a><a class="button button-ghost" href="novedades.html">Ver novedades</a></div>
       </div>
-      <a class="hero-scroll" href="#selection"><span>DESCUBRE</span><i></i></a>
+    </section>
+
+    <section class="trust-strip" aria-label="Cómo funciona GinesCloset">
+      <div><svg aria-hidden="true"><use href="icons.svg#shield"></use></svg><span><b>PIEZAS SELECCIONADAS</b><small>Catálogo cuidado</small></span></div>
+      <div><svg aria-hidden="true"><use href="icons.svg#bag"></use></svg><span><b>PREPARA TU CARRITO</b><small>Sin realizar ningún pago</small></span></div>
+      <div><svg aria-hidden="true"><use href="icons.svg#whatsapp"></use></svg><span><b>OFERTA POR WHATSAPP</b><small>Atención personal</small></span></div>
+      <div><svg aria-hidden="true"><use href="icons.svg#user"></use></svg><span><b>DESDE GINES</b><small>Trato directo</small></span></div>
     </section>
 
     <div class="brand-ticker" aria-hidden="true"><div>CURATED BRANDS <b>✦</b> NUEVAS PIEZAS <b>✦</b> ESTILO SIN REGLAS <b>✦</b> CURATED BRANDS <b>✦</b> NUEVAS PIEZAS <b>✦</b> ESTILO SIN REGLAS <b>✦</b></div></div>
 
-    <section class="manifesto section-shell">
-      <p class="section-number">01 — NUESTRA SELECCIÓN</p>
-      <div><p class="kicker blue">MODA CON IDENTIDAD</p><h2>Lo especial no se encuentra<br><em>en cualquier sitio.</em></h2><p>Cada pieza entra en GinesCloset por una razón: diseño, presencia y esa capacidad de cambiar por completo un look.</p></div>
-    </section>
-
-    <section class="selection section-shell" id="selection">
+    <section class="selection section-shell" id="selection" data-reveal>
       <div class="section-heading"><div><p class="kicker blue">SELECCIÓN GC</p><h2>Elegidos para ti.</h2></div><a href="catalogo.html">Ver catálogo completo <span>→</span></a></div>
       <div class="product-grid home-product-grid" id="homeFeatured" aria-live="polite"></div>
     </section>
 
-    <section class="home-links section-shell">
-      <a href="catalogo.html"><span>01</span><p>EXPLORA</p><h3>Catálogo</h3><b>Busca por nombre, marca, categoría o talla.</b><i>→</i></a>
-      <a href="novedades.html"><span>02</span><p>DESCUBRE</p><h3>Novedades</h3><b>Las últimas piezas que llegan a la selección.</b><i>→</i></a>
-      <a href="favoritos.html"><span>03</span><p>GUARDA</p><h3>Favoritos</h3><b>Tu selección personal, siempre contigo.</b><i>→</i></a>
+    <section class="manifesto section-shell" data-reveal>
+      <p class="section-number">01 — NUESTRA SELECCIÓN</p>
+      <div><p class="kicker blue">MODA CON IDENTIDAD</p><h2>Lo especial no se encuentra<br><em>en cualquier sitio.</em></h2><p>Cada pieza entra en GinesCloset por una razón: diseño, presencia y esa capacidad de cambiar por completo un look.</p></div>
     </section>
-
-    <section class="closing-banner"><div><p class="kicker">TU PRÓXIMA PIEZA</p><h2>Encuentra lo que<br>te representa.</h2></div><a class="button button-light" href="catalogo.html">Ver catálogo <span>→</span></a></section>
   </main>
 
   <footer class="site-footer">
@@ -77,3 +76,4 @@
   </footer>
 </body>
 </html>
+

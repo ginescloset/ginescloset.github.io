@@ -36,6 +36,7 @@ const state = {
 };
 
 const esc = (value="") => String(value).replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[char]);
+const icon = (name, className="") => `<svg class="gc-icon ${className}" aria-hidden="true"><use href="icons.svg#${esc(name)}"></use></svg>`;
 const norm = value => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 function publicAsset(value) { return String(value || "").replace(/^media\//, ""); }
 function productImages(product) {
@@ -50,10 +51,16 @@ function normalizeProduct(product) {
   normalized.images = productImages(product);
   normalized.image = normalized.images[0];
   normalized.active = product.active !== false;
+  normalized.condition = String(product.condition || "Muy buen estado");
+  normalized.color = String(product.color || "");
+  normalized.material = String(product.material || "");
+  normalized.measurements = String(product.measurements || "");
+  normalized.authenticity = String(product.authenticity || "");
+  normalized.unique = product.unique !== false;
   return normalized;
 }
 function productSignature(products) {
-  return JSON.stringify(products.map(product => [product.id,product.name,product.brand,product.category,product.price,product.image,product.badge,product.sizes,product.active,product.createdOrder]));
+  return JSON.stringify(products.map(product => [product.id,product.name,product.brand,product.category,product.price,product.image,product.badge,product.sizes,product.active,product.createdOrder,product.condition,product.color,product.material,product.measurements,product.authenticity,product.unique]));
 }
 function readProductCache() {
   try {
@@ -111,6 +118,19 @@ function showInfrastructureErrorOnce(error,fallback){if(state.infrastructureErro
 
 function initChrome() {
   document.querySelectorAll("[data-year]").forEach(node => node.textContent = new Date().getFullYear());
+  const header = document.querySelector("[data-header]");
+  const tools = header?.querySelector(".header-tools");
+  const favoriteShortcut = tools?.querySelector(".favorite-shortcut");
+  const cartShortcut = tools?.querySelector(".cart-shortcut");
+  if (favoriteShortcut) favoriteShortcut.innerHTML = `${icon("heart")}<b data-favorite-count>0</b>`;
+  if (cartShortcut) cartShortcut.innerHTML = `${icon("bag","cart-icon")}<b data-cart-count>0</b>`;
+  if (tools && !tools.querySelector(".search-shortcut")) tools.insertAdjacentHTML("afterbegin", `<a class="header-icon search-shortcut" href="catalogo.html?buscar=1" aria-label="Buscar artículos">${icon("search")}</a>`);
+  document.querySelectorAll('.main-nav a[href="carrito.html"]').forEach(link => link.remove());
+  const mainNav = document.querySelector("#mainNav");
+  if (mainNav && !mainNav.querySelector(".mobile-account-nav")) mainNav.insertAdjacentHTML("beforeend", '<a class="mobile-account-nav" data-account-link href="cuenta.html"><span data-account-label>Iniciar sesión</span></a>');
+  const updateHeader = () => header?.classList.toggle("scrolled", window.scrollY > 28);
+  updateHeader();
+  window.addEventListener("scroll", updateHeader, {passive:true});
   const toggle = document.querySelector(".nav-toggle");
   const nav = document.querySelector("#mainNav");
   toggle?.addEventListener("click", () => {
@@ -125,23 +145,44 @@ function initChrome() {
     if (authButton) { event.preventDefault(); openAuthModal(authButton.dataset.openAuth || "login"); return; }
     const cartButton = event.target.closest("[data-cart]");
     if (cartButton) { event.preventDefault(); event.stopPropagation(); const size=cartButton.hasAttribute("data-cart-detail") ? document.querySelector("#detailSize")?.value || "" : ""; addToCart(cartButton.dataset.cart,size,cartButton.hasAttribute("data-cart-detail")); return; }
+    const quickViewButton = event.target.closest("[data-quick-view]");
+    if (quickViewButton) { event.preventDefault(); event.stopPropagation(); openQuickView(quickViewButton.dataset.quickView); return; }
     const logoutButton = event.target.closest("[data-logout]");
     if (logoutButton) { event.preventDefault(); logoutToStore(); }
   });
   injectAuthModal();
+  enhanceFooter();
+  initRevealMotion();
+  if (page === "catalog" && (new URLSearchParams(location.search).has("buscar") || location.hash === "#catalogSearch")) setTimeout(() => document.querySelector("#catalogSearch")?.focus(), 250);
+}
+
+function enhanceFooter() {
+  const footer = document.querySelector(".site-footer");
+  if (!footer || footer.querySelector(".footer-process")) return;
+  const copy = footer.querySelector(".footer-copy");
+  copy?.insertAdjacentHTML("beforebegin", `<div class="footer-process"><h3>Cómo funciona</h3><p>Añade tus piezas al carrito y envía una solicitud. Revisaremos la selección y recibirás una oferta personalizada por WhatsApp.</p><span>${icon("whatsapp")} Sin pagos en la web</span></div>`);
+}
+
+function initRevealMotion() {
+  const elements = [...document.querySelectorAll("[data-reveal], .selection, .manifesto, .listing-heading")];
+  if (!elements.length || matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) { elements.forEach(node => node.classList.add("is-visible")); return; }
+  elements.forEach(node => node.classList.add("reveal-section"));
+  const observer = new IntersectionObserver(entries => entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add("is-visible"); observer.unobserve(entry.target); } }), {threshold:.12});
+  elements.forEach(node => observer.observe(node));
 }
 
 function productCard(product) {
   const liked = state.favorites.has(product.id);
-  const category = CATEGORY_LABELS[product.category] || "Selección";
   const href = `articulo.html?id=${encodeURIComponent(product.id)}`;
   return `<article class="product-card" data-product-id="${esc(product.id)}">
-    <div class="product-media"><a href="${href}"><img src="${esc(product.image)}" alt="${esc(product.name)}" loading="lazy" decoding="async" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded');this.src='producto-1.jpg'"></a>
+    <a class="product-card-link" href="${href}" aria-label="Ver ${esc(product.name)}"></a>
+    <div class="product-media"><img src="${esc(product.image)}" alt="${esc(product.name)}" loading="lazy" decoding="async" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded');this.src='producto-1.jpg'">
       ${product.badge ? `<span class="product-badge">${esc(product.badge)}</span>` : ""}
-      <button class="heart-button ${liked ? "liked" : ""}" data-favorite="${esc(product.id)}" type="button" aria-label="${liked ? "Quitar de favoritos" : "Guardar en favoritos"}">${liked ? "♥" : "♡"}</button>
+      <button class="quick-view-button" data-quick-view="${esc(product.id)}" type="button" aria-label="Vista rápida de ${esc(product.name)}">${icon("eye")}<span>Vista rápida</span></button>
+      <button class="heart-button ${liked ? "liked" : ""}" data-favorite="${esc(product.id)}" type="button" aria-label="${liked ? "Quitar de favoritos" : "Guardar en favoritos"}">${icon(liked ? "heart-filled" : "heart")}</button>
     </div>
-    <div class="product-card-info"><div class="product-meta"><span>${esc(product.brand || "GinesCloset")} · ${esc(category)}</span><strong>${esc(formatPrice(product.price))}</strong></div>
-      <h3><a href="${href}">${esc(product.name)}</a></h3><div class="product-bottom"><div class="product-sizes">${product.sizes.length ? product.sizes.map(size => `<i>${esc(size)}</i>`).join("") : "<span>Talla única</span>"}</div><div class="product-card-actions"><a class="product-price" href="${href}">Ver →</a><button class="card-cart ${state.cart.has(product.id)?"added":""}" data-cart="${esc(product.id)}" type="button">${state.cart.has(product.id)?"✓ Añadido":"＋ Carrito"}</button></div></div>
+    <div class="product-card-info"><h3>${esc(product.name)}</h3><strong class="card-price">${esc(formatPrice(product.price))}</strong>
+      <div class="product-meta"><span>${esc(product.brand || "GinesCloset")}</span><small>${esc(product.condition || "Muy buen estado")}</small></div>
     </div></article>`;
 }
 
@@ -167,12 +208,12 @@ function syncProductActions() {
     const liked = state.favorites.has(button.dataset.favorite);
     button.classList.toggle("liked", liked);
     button.setAttribute("aria-label", liked ? "Quitar de favoritos" : "Guardar en favoritos");
-    button.textContent = button.classList.contains("detail-heart") ? (liked ? "♥ Guardado en favoritos" : "♡ Guardar en favoritos") : (liked ? "♥" : "♡");
+    button.innerHTML = button.classList.contains("detail-heart") ? `${icon(liked ? "heart-filled" : "heart")} ${liked ? "Guardado en favoritos" : "Guardar en favoritos"}` : icon(liked ? "heart-filled" : "heart");
   });
   document.querySelectorAll("[data-cart]").forEach(button => {
     const added = state.cart.has(button.dataset.cart);
     button.classList.toggle("added", added);
-    button.textContent = button.hasAttribute("data-cart-detail") ? (added ? "✓ Artículo en el carrito" : "＋ Añadir al carrito") : (added ? "✓ Añadido" : "＋ Carrito");
+    button.textContent = button.closest(".mobile-add-bar") ? (added ? "EN EL CARRITO" : "AÑADIR") : button.hasAttribute("data-cart-detail") ? (added ? "✓ Artículo en el carrito" : "＋ Añadir al carrito") : (added ? "✓ Añadido" : "＋ Carrito");
   });
 }
 
@@ -411,14 +452,53 @@ function renderProductDetail() {
   if (!product) { root.innerHTML = '<div class="empty-state"><span>◇</span><h2>Este artículo no está disponible</h2><p>Puede haber sido retirado o el enlace no es correcto.</p><a class="button button-primary" href="catalogo.html">Volver al catálogo</a></div>'; return; }
   document.title = `${product.name} | GinesCloset`;
   const images = productImages(product), liked = state.favorites.has(product.id);
-  root.innerHTML = `<article class="product-detail"><div class="product-gallery"><div class="product-thumbs">${images.map((image,index) => `<button class="product-thumb ${index===0?"active":""}" type="button" data-detail-image="${esc(image)}"><img src="${esc(image)}" alt="Vista ${index+1} de ${esc(product.name)}" onerror="this.src='producto-1.jpg'"></button>`).join("")}</div><div class="product-main-image"><img id="detailMainImage" src="${esc(images[0])}" alt="${esc(product.name)}" onerror="this.src='producto-1.jpg'"></div></div>
-    <div class="product-detail-info"><p class="product-breadcrumb"><a href="catalogo.html">Catálogo</a> · ${esc(CATEGORY_LABELS[product.category] || "Selección")}</p><p class="kicker blue">${esc(product.brand || "GINESCLOSET")}</p><h1>${esc(product.name)}</h1><strong class="detail-price">${esc(formatPrice(product.price))}</strong><p class="detail-description">${esc(product.description || "Una pieza seleccionada por GinesCloset.")}</p>
+  root.innerHTML = `<article class="product-detail"><div class="product-gallery"><div class="product-thumbs">${images.map((image,index) => `<button class="product-thumb ${index===0?"active":""}" type="button" data-detail-index="${index}" aria-label="Mostrar imagen ${index+1}"><img src="${esc(image)}" alt="Vista ${index+1} de ${esc(product.name)}" onerror="this.src='producto-1.jpg'"></button>`).join("")}</div><div class="product-main-image" id="detailImageStage"><img id="detailMainImage" src="${esc(images[0])}" alt="${esc(product.name)}" onerror="this.src='producto-1.jpg'"><button class="gallery-zoom" data-product-zoom type="button" aria-label="Ampliar fotografía">${icon("zoom")}</button>${images.length>1?`<button class="gallery-arrow previous" data-gallery-previous type="button" aria-label="Fotografía anterior">←</button><button class="gallery-arrow next" data-gallery-next type="button" aria-label="Fotografía siguiente">→</button>`:""}<span class="gallery-count" id="galleryCount">1 / ${images.length}</span></div></div>
+    <div class="product-detail-info"><p class="product-breadcrumb"><a href="catalogo.html">Catálogo</a> · ${esc(CATEGORY_LABELS[product.category] || "Selección")}</p><p class="kicker blue">${esc(product.brand || "GINESCLOSET")}</p><h1>${esc(product.name)}</h1><div class="detail-price-row"><strong class="detail-price">${esc(formatPrice(product.price))}</strong>${product.unique?'<span>PIEZA ÚNICA</span>':""}</div><p class="detail-condition">${esc(product.condition || "Muy buen estado")}</p><p class="detail-description">${esc(product.description || "Una pieza seleccionada por GinesCloset.")}</p>
       <label class="size-select-field"><span>Seleccionar talla</span><select id="detailSize"><option value="">Elige una talla</option>${product.sizes.map(size => `<option>${esc(size)}</option>`).join("")}</select></label>
-      <div class="detail-actions"><button class="button button-primary" data-cart="${esc(product.id)}" data-cart-detail type="button">${state.cart.has(product.id)?"✓ Artículo en el carrito":"＋ Añadir al carrito"}</button><button class="detail-heart ${liked?"liked":""}" data-favorite="${esc(product.id)}" type="button">${liked?"♥ Guardado en favoritos":"♡ Guardar en favoritos"}</button></div></div></article>`;
-  root.querySelectorAll("[data-detail-image]").forEach(button => button.addEventListener("click", () => { root.querySelectorAll(".product-thumb").forEach(item => item.classList.remove("active")); button.classList.add("active"); document.querySelector("#detailMainImage").src = button.dataset.detailImage; }));
+      ${productDetailsMarkup(product)}
+      <div class="offer-explainer">${icon("whatsapp")}<div><b>Recibe una oferta por WhatsApp</b><span>Añade la pieza al carrito y envía tu solicitud. No se realiza ningún pago en la web.</span></div></div>
+      <div class="detail-actions"><button class="button button-primary" data-cart="${esc(product.id)}" data-cart-detail type="button">${state.cart.has(product.id)?"✓ Artículo en el carrito":"＋ Añadir al carrito"}</button><button class="detail-heart ${liked?"liked":""}" data-favorite="${esc(product.id)}" type="button">${icon(liked?"heart-filled":"heart")} ${liked?"Guardado en favoritos":"Guardar en favoritos"}</button></div></div></article>
+      <div class="mobile-add-bar"><div><small>${esc(product.brand || "GINESCLOSET")}</small><strong>${esc(formatPrice(product.price))}</strong></div><button class="button button-primary" data-cart="${esc(product.id)}" data-cart-detail type="button">${state.cart.has(product.id)?"EN EL CARRITO":"AÑADIR"}</button></div>`;
+  let currentImage = 0;
+  const showImage = nextIndex => { currentImage = (nextIndex + images.length) % images.length; const main = root.querySelector("#detailMainImage"); main.src = images[currentImage]; main.alt = `Vista ${currentImage+1} de ${product.name}`; root.querySelectorAll("[data-detail-index]").forEach(button => button.classList.toggle("active", Number(button.dataset.detailIndex) === currentImage)); root.querySelector("#galleryCount").textContent = `${currentImage+1} / ${images.length}`; };
+  root.querySelectorAll("[data-detail-index]").forEach(button => button.addEventListener("click", () => showImage(Number(button.dataset.detailIndex))));
+  root.querySelector("[data-gallery-previous]")?.addEventListener("click", () => showImage(currentImage-1));
+  root.querySelector("[data-gallery-next]")?.addEventListener("click", () => showImage(currentImage+1));
+  root.querySelector("[data-product-zoom]")?.addEventListener("click", () => openProductZoom(images[currentImage], product.name));
+  const stage = root.querySelector("#detailImageStage"); let touchStart = 0;
+  stage?.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive:true});
+  stage?.addEventListener("touchend", event => { const distance = event.changedTouches[0].clientX-touchStart; if (Math.abs(distance)>45) showImage(currentImage+(distance<0?1:-1)); }, {passive:true});
   const related = activeProducts().filter(item => item.id !== product.id && (item.category === product.category || item.brand === product.brand)).slice(0,3);
   const relatedRoot = document.querySelector("#relatedProducts"), section = document.querySelector("#relatedSection");
   if (related.length) { relatedRoot.innerHTML = related.map(productCard).join(""); section.classList.remove("hidden"); } else section.classList.add("hidden");
+}
+
+function productDetailsMarkup(product) {
+  const rows = [["Color",product.color],["Material",product.material],["Medidas",product.measurements],["Autenticidad",product.authenticity]].filter(([,value]) => value);
+  if (!rows.length) return "";
+  return `<details class="product-facts" open><summary>Detalles de la pieza <span>＋</span></summary><dl>${rows.map(([label,value]) => `<div><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl></details>`;
+}
+
+function openProductZoom(imageUrl, name) {
+  document.querySelector("#productZoom")?.remove();
+  document.body.insertAdjacentHTML("beforeend", `<div class="image-zoom-backdrop" id="productZoom" role="dialog" aria-modal="true" aria-label="Fotografía ampliada"><button type="button" aria-label="Cerrar">×</button><img src="${esc(imageUrl)}" alt="${esc(name)}"></div>`);
+  const modal = document.querySelector("#productZoom");
+  const close = () => { modal.remove(); document.body.style.overflow=""; };
+  document.body.style.overflow="hidden";
+  modal.querySelector("button").addEventListener("click", close);
+  modal.addEventListener("click", event => { if (event.target === modal) close(); });
+}
+
+function openQuickView(id) {
+  const product = activeProducts().find(item => item.id === id); if (!product) return;
+  document.querySelector("#quickViewModal")?.remove();
+  document.body.insertAdjacentHTML("beforeend", `<div class="quick-view-backdrop" id="quickViewModal" role="dialog" aria-modal="true" aria-labelledby="quickViewTitle"><section class="quick-view-dialog"><button class="quick-view-close" type="button" aria-label="Cerrar">×</button><div class="quick-view-image"><img src="${esc(product.image)}" alt="${esc(product.name)}"></div><div class="quick-view-content"><p class="kicker blue">${esc(product.brand || "GINESCLOSET")}</p><h2 id="quickViewTitle">${esc(product.name)}</h2><strong>${esc(formatPrice(product.price))}</strong><span class="quick-condition">${esc(product.condition || "Muy buen estado")}</span>${product.sizes.length?`<label><span>Seleccionar talla</span><select id="quickViewSize"><option value="">Elige una talla</option>${product.sizes.map(size=>`<option>${esc(size)}</option>`).join("")}</select></label>`:""}<p>Guárdalo en tu carrito para solicitar una oferta personalizada por WhatsApp.</p><button class="button button-primary" id="quickViewAdd" type="button">AÑADIR AL CARRITO</button><a href="articulo.html?id=${encodeURIComponent(product.id)}">Ver ficha completa →</a></div></section></div>`);
+  const modal = document.querySelector("#quickViewModal");
+  const close = () => { modal.remove(); document.body.style.overflow=""; };
+  document.body.style.overflow="hidden";
+  modal.querySelector(".quick-view-close").addEventListener("click", close);
+  modal.addEventListener("click", event => { if (event.target === modal) close(); });
+  modal.querySelector("#quickViewAdd").addEventListener("click", async () => { const selected = modal.querySelector("#quickViewSize")?.value || ""; if (product.sizes.length && !selected) { showToast("Selecciona una talla antes de añadir el artículo.","error"); modal.querySelector("#quickViewSize")?.focus(); return; } await addToCart(product.id, selected, Boolean(product.sizes.length)); if (state.user) close(); });
 }
 
 async function toggleFavorite(id) {
@@ -460,7 +540,7 @@ function renderCart() {
   if(state.lastRequestNumber&&!items.length){root.innerHTML=`<section class="cart-success"><span>✓</span><p class="kicker blue">SOLICITUD ENVIADA</p><h1>Ya la tiene GinesCloset.</h1><p>Tu solicitud <b>${esc(state.lastRequestNumber)}</b> ha llegado al administrador. Preparará una oferta con tus artículos y te escribirá por WhatsApp.</p><div><a class="button button-primary" href="catalogo.html">Seguir viendo el catálogo</a><a class="text-button" href="cuenta.html">Ver mis datos</a></div></section>`;return;}
   if(!items.length){root.innerHTML=`<section class="cart-empty"><span>▢</span><p class="kicker blue">TU CARRITO</p><h1>Aún no has añadido artículos.</h1><p>Explora el catálogo y guarda aquí las piezas que quieras consultar.</p><a class="button button-primary" href="catalogo.html">Explorar catálogo</a></section>`;return;}
   const phone=state.profile.phone||"";
-  root.innerHTML=`<section class="cart-heading"><div><p class="kicker blue">SOLICITUD PERSONAL · ${esc(clientNumber)}</p><h1>Tu carrito.</h1><p>Revisa las tallas y envía la selección. El administrador recibirá los artículos y te preparará una oferta por WhatsApp.</p></div><span><b>${items.length}</b> artículo${items.length===1?"":"s"}</span></section><div class="cart-layout"><section class="cart-items">${items.map(cartItemMarkup).join("")}</section><aside class="cart-summary"><p class="kicker blue">RESUMEN</p><h2>Solicitud de oferta</h2><dl><div><dt>Número de cliente</dt><dd>${esc(clientNumber)}</dd></div><div><dt>Artículos</dt><dd>${items.length}</dd></div><div><dt>WhatsApp</dt><dd>${esc(phone||"Sin número")}</dd></div></dl>${phone?'<p class="cart-summary-note">No se realizará ningún pago ahora. Recibirás una oferta personalizada por WhatsApp.</p>':'<p class="cart-phone-warning">Añade tu teléfono en “Mi cuenta” antes de enviar la solicitud.</p>'}<button class="button button-primary" id="submitCartRequest" type="button" ${phone?"":"disabled"}>Enviar al administrador</button>${phone?"":'<a class="button button-secondary" href="cuenta.html">Completar mis datos</a>'}<p class="cart-error hidden" id="cartError" role="alert"></p></aside></div>`;
+  root.innerHTML=`<section class="cart-heading"><div><p class="kicker blue">SOLICITUD PERSONAL · ${esc(clientNumber)}</p><h1>Tu carrito.</h1><p>Revisa las tallas y envía la selección. El administrador recibirá los artículos y te preparará una oferta por WhatsApp.</p></div><span><b>${items.length}</b> artículo${items.length===1?"":"s"}</span></section><div class="cart-layout"><section class="cart-items">${items.map(cartItemMarkup).join("")}</section><aside class="cart-summary"><p class="kicker blue">RESUMEN</p><h2>Solicitud de oferta</h2><dl><div><dt>Número de cliente</dt><dd>${esc(clientNumber)}</dd></div><div><dt>Artículos</dt><dd>${items.length}</dd></div><div><dt>WhatsApp</dt><dd>${esc(phone||"Sin número")}</dd></div></dl>${phone?'<p class="cart-summary-note">No se realizará ningún pago. Recibirás una oferta personalizada por WhatsApp.</p>':'<p class="cart-phone-warning">Añade tu teléfono en “Mi cuenta” antes de enviar la solicitud.</p>'}<button class="button button-primary" id="submitCartRequest" type="button" ${phone?"":"disabled"}>Enviar solicitud</button>${phone?"":'<a class="button button-secondary" href="cuenta.html">Completar mis datos</a>'}<p class="cart-error hidden" id="cartError" role="alert"></p></aside></div>`;
   root.querySelectorAll("[data-cart-remove]").forEach(button=>button.addEventListener("click",()=>removeCartItem(button.dataset.cartRemove)));
   root.querySelectorAll("[data-cart-size]").forEach(select=>select.addEventListener("change",()=>updateCartSize(select.dataset.cartSize,select.value)));
   root.querySelector("#submitCartRequest")?.addEventListener("click",submitCartRequest);
@@ -481,7 +561,7 @@ async function submitCartRequest(){
     batch.set(reference,{requestNumber,userId:state.user.uid,clientNumber,customerName:state.profile.name||state.user.displayName||"Cliente",customerEmail:(state.user.email||"").toLowerCase(),customerPhone:state.profile.phone,items,itemCount:items.length,status:"pending",createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
     state.cart.forEach((_,id)=>batch.delete(doc(db,"users",state.user.uid,"cart",id)));
     await batch.commit();state.lastRequestNumber=requestNumber;renderCart();
-  }catch(error){console.error(error);state.lastRequestNumber="";errorBox.textContent=firestoreActionMessage(error,"No se ha podido enviar la solicitud. Inténtalo de nuevo.");errorBox.classList.remove("hidden");button.disabled=false;button.textContent="Enviar al administrador";}
+  }catch(error){console.error(error);state.lastRequestNumber="";errorBox.textContent=firestoreActionMessage(error,"No se ha podido enviar la solicitud. Inténtalo de nuevo.");errorBox.classList.remove("hidden");button.disabled=false;button.textContent="Enviar solicitud";}
 }
 
 function injectAuthModal() {
