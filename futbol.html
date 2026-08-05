@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="es" class="gc-auth-pending">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Personaliza tu camiseta de fútbol en GinesCloset. Añade nombre, número, parches y más.">
+  <title>Personaliza tu Camiseta | GinesCloset</title>
+  <link rel="icon" href="ginescloset-logo.png">
+  <link rel="apple-touch-icon" href="ginescloset-logo.png">
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://firestore.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap">
+  <link rel="stylesheet" href="styles.css?v=28.0">
+  <script type="module" src="app.js?v=28.0"></script>
+</head>
+<body data-page="futbol">
+  <a class="skip-link" href="#mainContent">Saltar al contenido</a>
+  <header class="site-header light" data-header>
+    <a class="brand" href="index.html">GINESCLOSET</a>
+    <nav class="main-nav" id="mainNav" aria-label="Navegación principal">
+      <a href="index.html">Inicio</a>
+      <a href="catalogo.html">Catálogo</a>
+      <a href="novedades.html">Novedades</a>
+      <a class="active" href="futbol.html">Fútbol</a>
+      <a href="favoritos.html">Favoritos</a>
+      <a class="mobile-account-nav" data-account-link href="cuenta.html"><span data-account-label>Iniciar sesión</span></a>
+    </nav>
+    <div class="header-tools">
+      <a class="header-icon search-shortcut" href="catalogo.html?buscar=1" aria-label="Buscar artículos"><svg aria-hidden="true"><use href="icons.svg#search"></use></svg></a>
+      <a class="header-icon favorite-shortcut" href="favoritos.html" aria-label="Ver favoritos"><svg aria-hidden="true"><use href="icons.svg#heart"></use></svg><b data-favorite-count>0</b></a>
+      <a class="header-icon cart-shortcut" href="carrito.html" aria-label="Ver carrito"><svg class="cart-icon" aria-hidden="true"><use href="icons.svg#bag"></use></svg><b data-cart-count>0</b></a>
+      <a class="account-link" data-account-link href="cuenta.html"><span data-account-label>Iniciar sesión</span></a>
+      <button class="nav-toggle" type="button" aria-controls="mainNav" aria-expanded="false" aria-label="Abrir menú"><span></span><span></span></button>
+    </div>
+  </header>
+
+  <main id="mainContent" class="futbol-page">
+    <section class="futbol-hero">
+      <div class="futbol-hero-content">
+        <p class="kicker">PERSONALIZACIÓN TOTAL</p>
+        <h1>Tu camiseta,<br><em>tu estilo.</em></h1>
+        <p>Elige una camiseta de fútbol y personalízala con tu nombre, número, parches y más. Envía tu diseño y te prepararemos una oferta.</p>
+      </div>
+    </section>
+
+    <section class="futbol-customizer section-shell">
+      <div class="futbol-layout">
+        <div class="futbol-form">
+          <section class="futbol-card">
+            <div class="futbol-card-head">
+              <span class="step-number">01</span>
+              <div>
+                <h2>Elige tu camiseta</h2>
+                <p>Selecciona del catálogo o sube la tuya</p>
+              </div>
+            </div>
+            <div class="jersey-selector">
+              <div class="jersey-grid" id="jerseyGrid">
+                <div class="jersey-option selected" data-jersey="custom">
+                  <div class="jersey-preview">📸</div>
+                  <span>Subir mi foto</span>
+                </div>
+              </div>
+              <div class="jersey-upload" id="jerseyUpload">
+                <label class="media-drop" id="jerseyDrop">
+                  <span>📷</span>
+                  <h3>Sube una foto de la camiseta</h3>
+                  <p>JPG, PNG o WEBP</p>
+                  <b class="button button-secondary">Seleccionar imagen</b>
+                  <input id="jerseyInput" type="file" accept="image/jpeg,image/png,image/webp">
+                </label>
+                <div class="jersey-preview-img hidden" id="jerseyPreview">
+                  <img id="jerseyPreviewImg" src="" alt="Vista previa">
+                  <button type="button" id="removeJersey" class="remove-btn">×</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="futbol-card">
+            <div class="futbol-card-head">
+              <span class="step-number">02</span>
+              <div>
+                <h2>Personaliza</h2>
+                <p>Añade nombre, número y detalles</p>
+              </div>
+            </div>
+            <div class="custom-fields">
+              <div class="admin-field-grid">
+                <div class="admin-field">
+                  <span>Nombre en la camiseta</span>
+                  <input id="playerName" type="text" maxlength="25" placeholder="Ej. MBAPPÉ">
+                </div>
+                <div class="admin-field">
+                  <span>Número</span>
+                  <input id="playerNumber" type="number" min="0" max="99" placeholder="Ej. 7">
+                </div>
+              </div>
+              <div class="admin-field">
+                <span>Talla</span>
+                <div class="size-quick-row">
+                  <button type="button" class="size-btn" data-size="XS">XS</button>
+                  <button type="button" class="size-btn" data-size="S">S</button>
+                  <button type="button" class="size-btn active" data-size="M">M</button>
+                  <button type="button" class="size-btn" data-size="L">L</button>
+                  <button type="button" class="size-btn" data-size="XL">XL</button>
+                  <button type="button" class="size-btn" data-size="XXL">XXL</button>
+                </div>
+                <input type="hidden" id="jerseySize" value="M">
+              </div>
+            </div>
+          </section>
+
+          <section class="futbol-card">
+            <div class="futbol-card-head">
+              <span class="step-number">03</span>
+              <div>
+                <h2>Parches</h2>
+                <p>¿Qué parches quieres añadir?</p>
+              </div>
+            </div>
+            <div class="patches-section">
+              <div class="admin-field">
+                <span>Tipo de parche</span>
+                <div class="patch-type-grid">
+                  <label class="patch-type-option">
+                    <input type="checkbox" name="patch" value="liga">
+                    <div class="patch-card">
+                      <span class="patch-icon">🏆</span>
+                      <b>Liga</b>
+                      <small>LaLiga, Premier, Serie A...</small>
+                    </div>
+                  </label>
+                  <label class="patch-type-option">
+                    <input type="checkbox" name="patch" value="champions">
+                    <div class="patch-card">
+                      <span class="patch-icon">⭐</span>
+                      <b>Champions</b>
+                      <small>Champions League</small>
+                    </div>
+                  </label>
+                  <label class="patch-type-option">
+                    <input type="checkbox" name="patch" value="copa">
+                    <div class="patch-card">
+                      <span class="patch-icon">🏅</span>
+                      <b>Copa</b>
+                      <small>Copa del Rey, FA Cup...</small>
+                    </div>
+                  </label>
+                  <label class="patch-type-option">
+                    <input type="checkbox" name="patch" value="mundial">
+                    <div class="patch-card">
+                      <span class="patch-icon">🌍</span>
+                      <b>Mundial</b>
+                      <small>Copa Mundial</small>
+                    </div>
+                  </label>
+                  <label class="patch-type-option">
+                    <input type="checkbox" name="patch" value="escudo">
+                    <div class="patch-card">
+                      <span class="patch-icon">🛡️</span>
+                      <b>Escudo</b>
+                      <small>Escudo del equipo</small>
+                    </div>
+                  </label>
+                  <label class="patch-type-option">
+                    <input type="checkbox" name="patch" value="marca">
+                    <div class="patch-card">
+                      <span class="patch-icon">✓</span>
+                      <b>Marca</b>
+                      <small>Nike, Adidas, Puma...</small>
+                    </div>
+                  </label>
+                </div>
+              </div>
+              <div class="admin-field">
+                <span>Parche personalizado</span>
+                <input id="customPatch" type="text" maxlength="50" placeholder="Ej. Campeón 2024, fundación, etc.">
+              </div>
+            </div>
+          </section>
+
+          <section class="futbol-card">
+            <div class="futbol-card-head">
+              <span class="step-number">04</span>
+              <div>
+                <h2>Enviar solicitud</h2>
+                <p>Te prepararemos una oferta por WhatsApp</p>
+              </div>
+            </div>
+            <div class="send-section">
+              <div class="send-summary" id="sendSummary">
+                <p>Completa los campos anteriores para ver el resumen de tu personalización.</p>
+              </div>
+              <button class="button button-primary" id="sendWhatsApp" type="button" disabled>
+                Enviar por WhatsApp
+              </button>
+            </div>
+          </section>
+        </div>
+
+        <aside class="futbol-preview">
+          <div class="preview-sticky">
+            <p class="preview-label">VISTA PREVIA</p>
+            <div class="preview-jersey" id="previewJersey">
+              <div class="preview-placeholder">
+                <span>⚽</span>
+                <p>Selecciona una camiseta</p>
+              </div>
+            </div>
+            <div class="preview-details" id="previewDetails">
+              <div class="preview-name" id="previewName">TU NOMBRE</div>
+              <div class="preview-number" id="previewNumber">00</div>
+              <div class="preview-size" id="previewSize">Talla: M</div>
+              <div class="preview-patches" id="previewPatches">Sin parches</div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer compact">
+    <div class="footer-brand"><a href="index.html">GINESCLOSET</a><p>Curated fashion.<br>Gines, Sevilla.</p></div>
+    <div><h3>Explora</h3><a href="catalogo.html">Catálogo</a><a href="novedades.html">Novedades</a><a href="futbol.html">Fútbol</a><a href="favoritos.html">Favoritos</a></div>
+    <div><h3>Tu espacio</h3><a href="cuenta.html">Mi cuenta</a></div>
+    <div><h3>Síguenos</h3><a href="https://www.instagram.com/ginescloset/" target="_blank" rel="noopener">Instagram ↗</a></div>
+    <p class="footer-copy">© <span data-year></span> GinesCloset.</p>
+  </footer>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const state = {
+        jerseyImage: null,
+        jerseyName: "",
+        size: "M",
+        patches: [],
+        customPatch: ""
+      };
+
+      // Cargar camisetas de fútbol del catálogo
+      const loadFootballJerseys = () => {
+        try {
+          const products = JSON.parse(sessionStorage.getItem("gc_catalog_cache_v2") || "[]");
+          const football = products.filter(p => p.category === "camisetas-futbol" && p.active !== false);
+          const grid = document.getElementById("jerseyGrid");
+          if (!grid || !football.length) return;
+          
+          const uploadOption = grid.querySelector('[data-jersey="custom"]');
+          grid.innerHTML = "";
+          grid.appendChild(uploadOption);
+          
+          football.slice(0, 8).forEach(product => {
+            const div = document.createElement("div");
+            div.className = "jersey-option";
+            div.dataset.jersey = product.id;
+            div.dataset.image = product.image || product.images?.[0] || "producto-1.jpg";
+            div.dataset.name = product.name;
+            div.innerHTML = `<img src="${product.image || product.images?.[0] || 'producto-1.jpg'}" alt="${product.name}" onerror="this.src='producto-1.jpg'"><span>${product.name.substring(0, 25)}</span>`;
+            grid.appendChild(div);
+          });
+          
+          bindJerseySelection();
+        } catch (e) { console.error(e); }
+      };
+
+      // Selección de camiseta
+      const bindJerseySelection = () => {
+        document.querySelectorAll(".jersey-option").forEach(option => {
+          option.addEventListener("click", () => {
+            document.querySelectorAll(".jersey-option").forEach(o => o.classList.remove("selected"));
+            option.classList.add("selected");
+            
+            const uploadSection = document.getElementById("jerseyUpload");
+            if (option.dataset.jersey === "custom") {
+              uploadSection.classList.remove("hidden");
+              state.jerseyImage = null;
+            } else {
+              uploadSection.classList.add("hidden");
+              state.jerseyImage = option.dataset.image;
+            }
+            updatePreview();
+          });
+        });
+      };
+
+      // Subir imagen
+      const jerseyInput = document.getElementById("jerseyInput");
+      const jerseyDrop = document.getElementById("jerseyDrop");
+      const jerseyPreview = document.getElementById("jerseyPreview");
+      const jerseyPreviewImg = document.getElementById("jerseyPreviewImg");
+      const removeJersey = document.getElementById("removeJersey");
+
+      if (jerseyInput) {
+        jerseyInput.addEventListener("change", (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+              state.jerseyImage = ev.target.result;
+              jerseyPreviewImg.src = ev.target.result;
+              jerseyPreview.classList.remove("hidden");
+              jerseyDrop.classList.add("hidden");
+              updatePreview();
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+
+      if (jerseyDrop) {
+        jerseyDrop.addEventListener("dragover", (e) => { e.preventDefault(); jerseyDrop.classList.add("dragover"); });
+        jerseyDrop.addEventListener("dragleave", () => jerseyDrop.classList.remove("dragover"));
+        jerseyDrop.addEventListener("drop", (e) => {
+          e.preventDefault();
+          jerseyDrop.classList.remove("dragover");
+          const file = e.dataTransfer.files[0];
+          if (file && file.type.startsWith("image/")) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+              state.jerseyImage = ev.target.result;
+              jerseyPreviewImg.src = ev.target.result;
+              jerseyPreview.classList.remove("hidden");
+              jerseyDrop.classList.add("hidden");
+              updatePreview();
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+
+      if (removeJersey) {
+        removeJersey.addEventListener("click", () => {
+          state.jerseyImage = null;
+          jerseyPreview.classList.add("hidden");
+          jerseyDrop.classList.remove("hidden");
+          jerseyInput.value = "";
+          updatePreview();
+        });
+      }
+
+      // Campos de texto
+      const playerName = document.getElementById("playerName");
+      const playerNumber = document.getElementById("playerNumber");
+      const customPatch = document.getElementById("customPatch");
+
+      if (playerName) playerName.addEventListener("input", (e) => { state.jerseyName = e.target.value.toUpperCase(); updatePreview(); });
+      if (playerNumber) playerNumber.addEventListener("input", (e) => { state.jerseyNumber = e.target.value; updatePreview(); });
+      if (customPatch) customPatch.addEventListener("input", (e) => { state.customPatch = e.target.value; updatePreview(); });
+
+      // Tallas
+      document.querySelectorAll(".size-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".size-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          state.size = btn.dataset.size;
+          document.getElementById("jerseySize").value = state.size;
+          updatePreview();
+        });
+      });
+
+      // Parches
+      document.querySelectorAll('[name="patch"]').forEach(input => {
+        input.addEventListener("change", () => {
+          state.patches = [...document.querySelectorAll('[name="patch"]:checked')].map(i => i.value);
+          updatePreview();
+        });
+      });
+
+      // Actualizar vista previa
+      const updatePreview = () => {
+        const previewJersey = document.getElementById("previewJersey");
+        const previewName = document.getElementById("previewName");
+        const previewNumber = document.getElementById("previewNumber");
+        const previewSize = document.getElementById("previewSize");
+        const previewPatches = document.getElementById("previewPatches");
+        const sendSummary = document.getElementById("sendSummary");
+        const sendBtn = document.getElementById("sendWhatsApp");
+
+        if (state.jerseyImage) {
+          previewJersey.innerHTML = `<img src="${state.jerseyImage}" alt="Tu camiseta">`;
+        } else {
+          previewJersey.innerHTML = `<div class="preview-placeholder"><span>⚽</span><p>Selecciona una camiseta</p></div>`;
+        }
+
+        previewName.textContent = state.jerseyName || "TU NOMBRE";
+        previewNumber.textContent = state.jerseyNumber || "00";
+        previewSize.textContent = `Talla: ${state.size}`;
+        
+        const patchLabels = { liga: "Liga", champions: "Champions", copa: "Copa", mundial: "Mundial", escudo: "Escudo", marca: "Marca" };
+        const allPatches = [...state.patches.map(p => patchLabels[p] || p), state.customPatch].filter(Boolean);
+        previewPatches.textContent = allPatches.length ? allPatches.join(", ") : "Sin parches";
+
+        // Resumen
+        const hasData = state.jerseyImage || state.jerseyName || state.jerseyNumber;
+        if (hasData) {
+          let summary = "<ul>";
+          if (state.jerseyImage) summary += "<li>✓ Camiseta seleccionada</li>";
+          if (state.jerseyName) summary += `<li>Nombre: <b>${state.jerseyName}</b></li>`;
+          if (state.jerseyNumber) summary += `<li>Número: <b>${state.jerseyNumber}</b></li>`;
+          summary += `<li>Talla: <b>${state.size}</b></li>`;
+          if (allPatches.length) summary += `<li>Parches: <b>${allPatches.join(", ")}</b></li>`;
+          summary += "</ul>";
+          sendSummary.innerHTML = summary;
+          sendBtn.disabled = false;
+        } else {
+          sendSummary.innerHTML = "<p>Completa los campos anteriores para ver el resumen de tu personalización.</p>";
+          sendBtn.disabled = true;
+        }
+      };
+
+      // Enviar por WhatsApp
+      const sendBtn = document.getElementById("sendWhatsApp");
+      if (sendBtn) {
+        sendBtn.addEventListener("click", () => {
+          const patchLabels = { liga: "Liga", champions: "Champions", copa: "Copa", mundial: "Mundial", escudo: "Escudo", marca: "Marca" };
+          const allPatches = [...state.patches.map(p => patchLabels[p] || p), state.customPatch].filter(Boolean);
+          
+          let message = `⚽ *SOLICITUD DE CAMISETA PERSONALIZADA*\n\n`;
+          if (state.jerseyName) message += `👤 Nombre: ${state.jerseyName}\n`;
+          if (state.jerseyNumber) message += `🔢 Número: ${state.jerseyNumber}\n`;
+          message += `📏 Talla: ${state.size}\n`;
+          if (allPatches.length) message += `🏷️ Parches: ${allPatches.join(", ")}\n`;
+          message += `\n📸 Adjunto foto de referencia de la camiseta.`;
+          message += `\n\n_GinesCloset - Personalización de camisetas_`;
+          
+          window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank");
+          showToast("Abriendo WhatsApp...", "success");
+        });
+      }
+
+      // Toast
+      function showToast(message, type = "success") {
+        let toast = document.querySelector(".site-toast");
+        if (!toast) { toast = document.createElement("div"); toast.className = "site-toast"; document.body.append(toast); }
+        toast.textContent = message;
+        toast.dataset.type = type;
+        toast.classList.add("show");
+        clearTimeout(showToast.timer);
+        showToast.timer = setTimeout(() => toast.classList.remove("show"), 3200);
+      }
+
+      // Init
+      loadFootballJerseys();
+      bindJerseySelection();
+    });
+  </script>
+</body>
+</html>

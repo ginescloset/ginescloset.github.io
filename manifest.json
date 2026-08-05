@@ -1,0 +1,25 @@
+{
+  "name": "GinesCloset | Piezas que hablan por ti",
+  "short_name": "GinesCloset",
+  "description": "Una selección cuidada de moda de lujo y streetwear.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#07152f",
+  "theme_color": "#07152f",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "ginescloset-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "ginescloset-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "fashion"]
+}
