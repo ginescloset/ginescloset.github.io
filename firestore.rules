@@ -1,0 +1,95 @@
+// GinesCloset · Firestore · versión 2026.08.02-r28
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    match /products/{productId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow create: if isOwner(userId)
+        && request.resource.data.role == 'customer'
+        && request.resource.data.clientNumber is string
+        && request.resource.data.clientNumber.size() > 3
+        && request.resource.data.email is string;
+
+      allow read: if isOwner(userId) || isAdmin();
+
+      // El cliente puede reparar perfiles antiguos sin role/clientNumber, pero
+      // nunca convertirse en administrador ni cambiar un número ya asignado.
+      allow update: if isAdmin()
+        || (isOwner(userId)
+          && request.resource.data.role == 'customer'
+          && request.resource.data.clientNumber is string
+          && request.resource.data.clientNumber.size() > 3
+          && (!('role' in resource.data) || resource.data.role == 'customer')
+          && (!('clientNumber' in resource.data)
+            || request.resource.data.clientNumber == resource.data.clientNumber));
+
+      allow delete: if isAdmin();
+
+      match /favorites/{productId} {
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && request.resource.data.productId == productId
+          && request.resource.data.productName is string
+          && request.resource.data.productImage is string;
+        allow read: if isAdmin();
+      }
+
+      match /cart/{productId} {
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && request.resource.data.productId == productId
+          && request.resource.data.productName is string
+          && request.resource.data.productImage is string
+          && request.resource.data.brand is string
+          && request.resource.data.category is string
+          && request.resource.data.price is string
+          && request.resource.data.size is string;
+        allow read: if isAdmin();
+      }
+    }
+
+    match /requests/{requestId} {
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.requestNumber is string
+        && request.resource.data.clientNumber is string
+        && request.resource.data.customerName is string
+        && request.resource.data.customerEmail is string
+        && request.resource.data.customerPhone is string
+        && request.resource.data.status == 'pending'
+        && request.resource.data.items is list
+        && request.resource.data.items.size() > 0
+        && request.resource.data.items.size() <= 50
+        && request.resource.data.itemCount == request.resource.data.items.size()
+        && request.resource.data.clientNumber == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.clientNumber
+        && request.resource.data.customerPhone == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.phone;
+
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.userId == request.auth.uid);
+
+      allow update, delete: if isAdmin();
+    }
+
+    match /{path=**}/favorites/{productId} {
+      allow read: if isAdmin();
+    }
+  }
+}

@@ -1,0 +1,75 @@
+﻿<!doctype html>
+<html lang="es" class="gc-auth-pending">
+<head>
+  <meta charset="utf-8"><meta name="gc-release" content="2026.08.02-r28"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Explora el catálogo completo de GinesCloset."><meta name="theme-color" content="#07152f">
+  <title>Catálogo | GinesCloset</title><link rel="icon" href="ginescloset-logo.png"><link rel="apple-touch-icon" href="ginescloset-logo.png"><link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="preconnect" href="https://firestore.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap"><link rel="stylesheet" href="styles.css?v=28.0"><script type="module" src="app.js?v=28.0"></script>
+</head>
+<body data-page="catalog">
+  <a class="skip-link" href="#mainContent">Saltar al contenido</a>
+  <header class="site-header light" data-header>
+    <a class="brand" href="index.html">GINESCLOSET</a>
+    <nav class="main-nav" id="mainNav" aria-label="Navegación principal"><a href="index.html">Inicio</a><a class="active" href="catalogo.html">Catálogo</a><a href="futbol.html">Fútbol</a><a href="novedades.html">Novedades</a><a href="favoritos.html">Favoritos</a><a class="mobile-account-nav" data-account-link href="cuenta.html"><span data-account-label>Iniciar sesión</span></a></nav>
+    <div class="header-tools"><a class="header-icon search-shortcut active" href="#catalogSearch" aria-label="Buscar artículos"><svg aria-hidden="true"><use href="icons.svg#search"></use></svg></a><a class="header-icon favorite-shortcut" href="favoritos.html" aria-label="Ver favoritos"><svg aria-hidden="true"><use href="icons.svg#heart"></use></svg><b data-favorite-count>0</b></a><a class="header-icon cart-shortcut" href="carrito.html" aria-label="Ver carrito"><svg class="cart-icon" aria-hidden="true"><use href="icons.svg#bag"></use></svg><b data-cart-count>0</b></a><a class="account-link" data-account-link href="cuenta.html"><span data-account-label>Iniciar sesión</span></a><button class="nav-toggle" type="button" aria-controls="mainNav" aria-expanded="false" aria-label="Abrir menú"><span></span><span></span></button></div>
+  </header>
+
+  <main id="mainContent" class="catalog-page">
+    <section class="page-intro section-shell"><p class="kicker blue">COLECCIÓN GINESCLOSET</p><div><h1>Encuentra tu<br><em>próxima pieza.</em></h1><p>Busca por nombre, firma, categoría o talla. Combina varios filtros hasta encontrar exactamente lo que buscas.</p></div></section>
+
+    <section class="catalog-layout section-shell">
+      <button class="mobile-filter-button" id="mobileFilterToggle" type="button" aria-expanded="false" aria-controls="catalogFilters"><span><svg aria-hidden="true"><use href="icons.svg#filter"></use></svg> Filtros</span><b id="mobileFilterCount">0</b></button>
+      <aside class="filter-panel" id="catalogFilters">
+        <div class="filter-title"><div><p>FILTROS INTELIGENTES</p><strong>Afina tu búsqueda</strong><small><b id="filterLiveResult">0</b> resultados disponibles</small></div><div class="filter-title-actions"><span id="activeFilterCount">0 activos</span><button id="clearFilters" type="button">Limpiar todo</button></div></div>
+
+        <details class="filter-group" open><summary><span><i>01</i>Categorías</span><small id="categoryFilterStatus">Todas</small><b>−</b></summary><div class="category-options" id="categoryOptions">
+          <button class="active category-all" data-category="all" type="button"><i>◇</i><span>Todas las categorías</span><b data-category-count>0</b></button>
+          <button data-category="camisetas" type="button"><i>CM</i><span>Camisetas</span><b data-category-count>0</b></button>
+          <button data-category="sudaderas" type="button"><i>SD</i><span>Sudaderas</span><b data-category-count>0</b></button>
+          <button data-category="polos" type="button"><i>PO</i><span>Polos</span><b data-category-count>0</b></button>
+          <button data-category="camisetas-futbol" type="button"><i>CF</i><span>Camisetas de fútbol</span><b data-category-count>0</b></button>
+          <button data-category="abrigos" type="button"><i>AB</i><span>Abrigos</span><b data-category-count>0</b></button>
+<button data-category="zapatos" type="button"><i>ZP</i><span>Zapatos</span><b data-category-count>0</b></button>
+          <button data-category="vaqueros" type="button"><i>VQ</i><span>Vaqueros</span><b data-category-count>0</b></button>
+          <button data-category="chanclas" type="button"><i>CH</i><span>Chanclas</span><b data-category-count>0</b></button>
+          <button data-category="pantalones-cortos" type="button"><i>PC</i><span>Pantalones cortos</span><b data-category-count>0</b></button>
+          <button data-category="pantalones-largos" type="button"><i>PL</i><span>Pantalones largos</span><b data-category-count>0</b></button>
+          <button data-category="bolsos" type="button"><i>BO</i><span>Bolsos</span><b data-category-count>0</b></button>
+          <button data-category="carteras" type="button"><i>CR</i><span>Carteras</span><b data-category-count>0</b></button>
+          <button data-category="rinoneras" type="button"><i>RN</i><span>Riñoneras</span><b data-category-count>0</b></button>
+        </div></details>
+
+        <details class="filter-group"><summary><span><i>02</i>Marcas</span><small id="brandSelectedCount">0 seleccionadas</small><b>−</b></summary><div class="brand-filter"><label class="filter-search"><span>⌕</span><input id="brandSearch" type="search" placeholder="Buscar marca" autocomplete="off"></label><div class="brand-options" id="brandOptions"></div></div></details>
+
+        <details class="filter-group price-group"><summary><span><i>03</i>Precio</span><small id="priceFilterStatus">Cualquier precio</small><b>−</b></summary><div class="price-filter">
+          <div class="price-budget-head"><span>€</span><div><b>Define tu presupuesto</b><small>Combina un mínimo y un máximo</small></div></div>
+          <div class="price-fields">
+            <label><span>Precio mínimo</span><span class="price-input"><input id="priceMin" type="number" min="0" step="1" inputmode="decimal" placeholder="Desde" aria-label="Precio mínimo"><b>€</b></span></label>
+            <label><span>Precio máximo</span><span class="price-input"><input id="priceMax" type="number" min="0" step="1" inputmode="decimal" placeholder="Hasta" aria-label="Precio máximo"><b>€</b></span></label>
+          </div>
+          <p class="price-presets-title">O elige un rango rápido</p>
+          <div class="price-presets" aria-label="Rangos de precio rápidos">
+            <button type="button" data-price-min="" data-price-max="50">Hasta 50 €</button>
+            <button type="button" data-price-min="50" data-price-max="100">50–100 €</button>
+            <button type="button" data-price-min="100" data-price-max="250">100–250 €</button>
+            <button type="button" data-price-min="250" data-price-max="">Más de 250 €</button>
+          </div>
+          <p class="price-note"><span>i</span> Los artículos “Consultar” se ocultan al aplicar un rango.</p>
+        </div></details>
+        <div class="filter-mobile-actions"><button id="closeFilters" type="button">Ver <b id="filterApplyCount">0</b> artículos</button></div>
+      </aside>
+
+      <div class="catalog-content">
+        <div class="catalog-toolbar"><label class="catalog-search"><svg aria-hidden="true"><use href="icons.svg#search"></use></svg><input id="catalogSearch" type="search" placeholder="Buscar prendas, marcas…" autocomplete="off"><kbd>ESC</kbd></label><label class="sort-control"><span>Ordenar</span><select id="catalogSort"><option value="newest">Más recientes</option><option value="name">Nombre A–Z</option><option value="price-low">Precio menor</option><option value="price-high">Precio mayor</option></select></label></div>
+        <div class="active-chips" id="activeChips"></div>
+        <div class="catalog-result-line"><p><strong id="resultCount">0</strong> artículos encontrados</p><span>Selección actualizada al instante</span></div>
+        <div class="product-grid catalog-grid" id="catalogGrid" aria-live="polite"></div>
+        <div class="empty-state hidden" id="catalogEmpty"><span>⌕</span><h2>No hemos encontrado coincidencias</h2><p>Prueba con otra búsqueda o limpia los filtros seleccionados.</p><button class="button button-primary" id="emptyClear" type="button">Limpiar filtros</button></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer compact"><div class="footer-brand"><a href="index.html">GINESCLOSET</a><p>Curated fashion.<br>Gines, Sevilla.</p></div><div><h3>Explora</h3><a href="catalogo.html">Catálogo</a><a href="novedades.html">Novedades</a><a href="favoritos.html">Favoritos</a></div><div><h3>Tu espacio</h3><a href="cuenta.html">Mi cuenta</a></div><div><h3>Síguenos</h3><a href="https://www.instagram.com/ginescloset/" target="_blank" rel="noopener">Instagram ↗</a></div><p class="footer-copy">© <span data-year></span> GinesCloset.</p></footer>
+</body>
+</html>
+

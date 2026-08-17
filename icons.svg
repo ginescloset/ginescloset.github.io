@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <symbol id="search" viewBox="0 0 24 24">
+    <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.7"/>
+    <path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="heart" viewBox="0 0 24 24">
+    <path d="M20.6 5.8c-2.1-2.2-5.6-2.2-7.7 0L12 6.7l-.9-.9a5.35 5.35 0 0 0-7.7 0c-2.1 2.2-2.1 5.7 0 7.9L12 22l8.6-8.3c2.1-2.2 2.1-5.7 0-7.9Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="heart-filled" viewBox="0 0 24 24">
+    <path d="M20.6 5.8c-2.1-2.2-5.6-2.2-7.7 0L12 6.7l-.9-.9a5.35 5.35 0 0 0-7.7 0c-2.1 2.2-2.1 5.7 0 7.9L12 22l8.6-8.3c2.1-2.2 2.1-5.7 0-7.9Z" fill="currentColor"/>
+  </symbol>
+  <symbol id="bag" viewBox="0 0 24 24">
+    <path d="M5.5 8.5h13l1 12h-15l1-12Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M9 9V6.5a3 3 0 0 1 6 0V9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="user" viewBox="0 0 24 24">
+    <circle cx="12" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <path d="M4.5 21a7.5 7.5 0 0 1 15 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="eye" viewBox="0 0 24 24">
+    <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+    <circle cx="12" cy="12" r="2.7" fill="none" stroke="currentColor" stroke-width="1.6"/>
+  </symbol>
+  <symbol id="zoom" viewBox="0 0 24 24">
+    <circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <path d="m15.5 15.5 4.5 4.5M10.5 7.5v6M7.5 10.5h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="filter" viewBox="0 0 24 24">
+    <path d="M4 6h16M7 12h10M10 18h4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="shield" viewBox="0 0 24 24">
+    <path d="M12 2.5 19 5v6.2c0 4.4-2.8 8.3-7 10.3-4.2-2-7-5.9-7-10.3V5l7-2.5Z" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <path d="m9 12 2 2 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="whatsapp" viewBox="0 0 24 24">
+    <path d="M20.5 11.8a8.5 8.5 0 0 1-12.6 7.4L3.5 20.5l1.4-4.2A8.5 8.5 0 1 1 20.5 11.8Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M8.5 7.7c.3-.3.8-.4 1.1 0l1.2 2c.2.3.1.7-.1 1l-.7.7c.7 1.5 1.7 2.5 3.2 3.2l.7-.8c.3-.3.7-.3 1-.1l2 1.2c.4.2.4.8.1 1.1-.8.9-1.8 1.3-3 1-3.8-1.1-6.8-4.1-7.9-7.9-.3-1.2.1-2.3 1-3Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+  </symbol>
+</svg>
