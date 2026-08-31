@@ -11,11 +11,11 @@ const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
 const supabase = createClient(SUPABASE_URL,SUPABASE_KEY,{accessToken:async()=>auth.currentUser?auth.currentUser.getIdToken(false):null});
 
-const BRANDS = ["Acne Studios","Adidas","Aimé Leon Dore","Alain Mikli","Alberta Ferretti","Alberto Biani","Alexander McQueen","Alice + Olivia","Ami","Amiri","Andrea Pfister","Ann Demeulemeester","Anna Sui","Anthropologie","A.P.C.","Arc'teryx","ASICS","Balenciaga","Balmain","Barbour","Bape","Base London","Beams Plus","Beats","Bershka","Billionaire Boys Club","Billabong","Blend","Blumarine","Boiler Room","Bogner","Bompard","Bottega Veneta","Boucheron","Breguet","Brioni","Bstroy","Brunello Cucinelli","Bulgari","Burberry","Cactus Plant Flea Market","Calvin Klein","Canada Goose","Carhartt WIP","Casa Blanca","Cartier","Celine","Chanel","Chloé","Chrome Hearts","Corteiz","Costume National","Courrèges","Cortez","Cotton Citizen","Cruz","Daily Paper","Denim Tears","Dsquared2","DUAA","Dior","Dior Homme","DKNY","Dolce & Gabbana","Dolce & Gabbana","Double Rainbow","Dries Van Noten","Eddie Bauer","Egon Schiele","Elie Saab","Emporio Armani","Enfants Riches Déprimés","ERD","Escada","Essentials","Etro","Fendi","Fila","Filling Pieces","Fiorucci","Foamposite","Fred Perry","Furla","Futur","GCDS","GmbH","Godspeed","Golden Goose","Goldbergh","Golf Wang","Goodhood","Gosha Rubchinskiy","Gucci","Guess","H&M","Harris Wharf London","Hellstar","Helmut Lang","Hermès","Hoka","Hugo Boss","Hummel","Iceberg","Isabel Marent","Isabel Marant","Ivy Park","J.Crew","Jacquemus","Jil Sander","Jimmy Choo","Jordan","Juicy Couture","JW Anderson","Kangol","Karl Lagerfeld","Kenzo","Kith","Karl Kani","Kiton","Ksubi","Kway","Lacoste","Lanvin","Lardini","Le Coq Sportif","Levi's","Lemaire","Loewe","Longchamp","Louis Vuitton","Loro Piana","Luciano Barbera","Luisa Beccaria","Lululemon","Mackage","Maison Kitsuné","Maison Margiela","Majestic Filatures","Mango","Manolo Blahnik","Marc Jacobs","Margaret Howell","Marine Serre","Markus Lupfer","Marni","Mastermind Japan","McQ Alexander McQueen","Miu Miu","Moncler","Moncler Grenoble","Moose Knuckles","Moschino","Mountain Hardwear","MSGM","Napapijri","Neil Barrett","New Balance","New Era","New Look","Nike","Noah","Norse Projects","North Face","Nudie Jeans","Number (N)ine","Oakley","Off-White","Olive Clothing","On Running","Opening Ceremony","Orlebar Brown","Oversize","Palm Angels","Patagonia","Paul Smith","Peak Performance","Polo Ralph Lauren","Prada","Pronounce","Puma","Purple","Raf Simons","Rag & Bone","Rains","Ralph Lauren","Ray-Ban","Reebok","Rejina Pyo","Rellik","Rick Owens","Roberto Cavalli","Rodarte","Rolex","Rouje","RTA","Sacai","Saint Laurent","Salomon","Samsonite","Sandro","Satisfyer","Schott NYC","Scotch & Soda","Sean John","Sergio Rossi","Sessun","Stone Island","Sp5der","Stussy","Suicoke","Supreme","Sweaty Betty","Takumi","Tasaki","Ted Baker","The Fader","The Kooples","The North Face","Thom Browne","Thom Krom","Tiffany & Co.","Timberland","Tod's","Tom Ford","Tommy Hilfiger","Tory Burch","True Religion","Twinset","Ugg","Under Armour","Uniqlo","Valentino","Van Cleef & Arpels","Vans","Versace","Victorinox","Vivienne Westwood","Vlone","Wandler","We11done","Woolrich","Wrangler","Y-3","Yeezy","Yohji Yamamoto","Zadig & Voltaire","Zara","Zegna"];
-const CATEGORIES = [["camisetas","Camisetas","CM"],["sudaderas","Sudaderas","SD"],["polos","Polos","PO"],["camisetas-futbol","Camisetas de fútbol","CF"],["abrigos","Abrigos","AB"],["zapatos","Zapatos","ZP"],["vaqueros","Vaqueros","VQ"],["chanclas","Chanclas","CH"],["pantalones-cortos","Pantalones cortos","PC"],["pantalones-largos","Pantalones largos","PL"],["bolsos","Bolsos","BO"],["carteras","Carteras","CR"],["rinoneras","Riñoneras","RN"]];
+const BRANDS = ["Acne Studios","Adidas","Aimé Leon Dore","Alain Mikli","Alberta Ferretti","Alberto Biani","Alexander McQueen","Alice + Olivia","Ami","Ami Paris","Amiri","Andrea Pfister","Ann Demeulemeester","Anna Sui","Anthropologie","A.P.C.","Arc'teryx","ASICS","Balenciaga","Balmain","Barbour","Bape","Base London","Beams Plus","Beats","Bershka","Billionaire Boys Club","Billabong","Birkenstock","Blend","Blumarine","Boiler Room","Bogner","Bompard","Bottega Veneta","Boucheron","Breguet","Brioni","Bstroy","Brunello Cucinelli","Bulgari","Burberry","Cactus Plant Flea Market","Calvin Klein","Canada Goose","Carhartt WIP","Casa Blanca","Cartier","Celine","Chanel","Chloé","Chrome Hearts","Corteiz","Costume National","Courrèges","Cortez","Cotton Citizen","Cruz","Daily Paper","Denim Tears","Dsquared2","DUAA","Dior","Dior Homme","DKNY","Dolce & Gabbana","Dolce & Gabbana","Double Rainbow","Dries Van Noten","Eddie Bauer","Egon Schiele","Elie Saab","Emporio Armani","Enfants Riches Déprimés","ERD","Eric Emanuel","Escada","Essentials","Etro","Fendi","Fila","Filling Pieces","Fiorucci","Foamposite","Fred Perry","Furla","Futur","GCDS","GmbH","Godspeed","Golden Goose","Goldbergh","Golf Wang","Goodhood","Gosha Rubchinskiy","Goyard","Gucci","Guess","H&M","Harris Wharf London","Hellstar","Helmut Lang","Hermès","Hoka","Hugo Boss","Hummel","Iceberg","Isabel Marent","Isabel Marant","Ivy Park","J.Crew","Jacquemus","Jil Sander","Jimmy Choo","Jordan","Juicy Couture","JW Anderson","Kangol","Karl Lagerfeld","Kenzo","Kith","Karl Kani","Kiton","Ksubi","Kway","Lacoste","Lanvin","Lardini","Le Coq Sportif","Levi's","Lemaire","Loewe","Longchamp","Louis Vuitton","Loro Piana","Luciano Barbera","Luisa Beccaria","Lululemon","Mackage","Maison Kitsuné","Maison Margiela","Majestic Filatures","Mango","Manolo Blahnik","Marc Jacobs","Margaret Howell","Marine Serre","Markus Lupfer","Marni","Mastermind Japan","McQ Alexander McQueen","Miu Miu","Moncler","Moncler Grenoble","Moose Knuckles","Moschino","Mountain Hardwear","MSGM","Napapijri","Neil Barrett","New Balance","New Era","New Look","Nike","Noah","Norse Projects","North Face","Nudie Jeans","Number (N)ine","Numeris","Oakley","Off-White","Olive Clothing","On Running","Opening Ceremony","Orlebar Brown","Oversize","Palm Angels","Patagonia","Paul Smith","Peak Performance","Polo Ralph Lauren","Prada","Pronounce","Puma","Purple","Raf Simons","Rag & Bone","Rains","Ralph Lauren","Ray-Ban","Reebok","Rejina Pyo","Rellik","Rhude","Rick Owens","Roberto Cavalli","Rodarte","Rolex","Rouje","RTA","Sacai","Saint Laurent","Salomon","Samsonite","Sandro","Satisfyer","Schott NYC","Scotch & Soda","Sean John","Sergio Rossi","Sessun","Stone Island","Sp5der","Stussy","Suicoke","Supreme","Sweaty Betty","Syna World","Takumi","Tasaki","Ted Baker","The Fader","The Kooples","The North Face","Thom Browne","Thom Krom","Tiffany & Co.","Timberland","Tod's","Tom Ford","Tommy Hilfiger","Tory Burch","True Religion","Twinset","Ugg","Under Armour","Uniqlo","Valentino","Valley Dreams","Van Cleef & Arpels","Vans","Versace","Victorinox","Vivienne Westwood","Vlone","Wandler","We11done","Woolrich","Wrangler","Y-3","Yeezy","Yohji Yamamoto","Zadig & Voltaire","Zara","Zegna"];
+const CATEGORIES = [["camisetas","Camisetas","CM"],["sudaderas","Sudaderas","SD"],["polos","Polos","PO"],["camisetas-futbol","Camisetas de fútbol","CF"],["abrigos","Abrigos","AB"],["zapatos","Zapatos","ZP"],["vaqueros","Vaqueros","VQ"],["chanclas","Chanclas","CH"],["pantalones-cortos","Pantalones cortos","PC"],["pantalones-largos","Pantalones largos","PL"],["bolsos","Bolsos","BO"],["mochilas","Mochilas","MO"],["gorros","Gorros","GO"],["carteras","Carteras","CR"],["rinoneras","Riñoneras","RN"]];
 const CATEGORY_LABELS = Object.fromEntries(CATEGORIES.map(item=>[item[0],item[1]]));
-const SINGLE_SIZE_CATEGORIES = new Set(["bolsos","carteras","rinoneras"]);
-const LEGACY_CATEGORIES = {vestidos:"camisetas",tops:"camisetas",conjuntos:"sudaderas",chaquetas:"abrigos",calzado:"zapatos",pantalones:"pantalones-largos",rinonera:"rinoneras",cartera:"carteras",bolso:"bolsos"};
+const SINGLE_SIZE_CATEGORIES = new Set(["bolsos","mochilas","gorros","carteras","rinoneras"]);
+const LEGACY_CATEGORIES = {vestidos:"camisetas",tops:"camisetas",conjuntos:"sudaderas",chaquetas:"abrigos",calzado:"zapatos",pantalones:"pantalones-largos",rinonera:"rinoneras",cartera:"carteras",bolso:"bolsos",mochila:"mochilas",gorro:"gorros",gorra:"gorros"};
 const SIZE_GROUPS = [
   {id:"adult-clothes",kind:"ADULTO",label:"Ropa de adulto",hint:"Tallas internacionales",sizes:["XS","S","M","L","XL","XXL"]},
   {id:"kids-clothes",kind:"INFANTIL",label:"Camisetas y ropa infantil",hint:"Desde bebé hasta 16 años",sizes:["0-3 meses","3-6 meses","6-9 meses","9-12 meses","12-18 meses","18-24 meses","2 años","3 años","4 años","5 años","6 años","8 años","10 años","12 años","14 años","16 años"]},
@@ -27,7 +27,7 @@ const PRODUCT_CACHE_KEY = "gc_catalog_cache_v2";
 const AUTH_HINT_KEY = "gc_auth_hint_v1";
 const cachedProducts = readProductCache();
 
-const state = {user:null,profile:{},role:"customer",products:cachedProducts||[],productSignature:cachedProducts?productSignature(cachedProducts):"",productsReady:cachedProducts!==null,requests:[],ready:false,view:"catalog",editId:"",search:"",category:"all",status:"all",requestSearch:"",requestStatus:"all",media:[],removedPaths:[],dirty:false,autosaveTimer:null,stopProducts:null,stopRequests:null};
+const state = {user:null,profile:{},role:"customer",products:cachedProducts||[],productSignature:cachedProducts?productSignature(cachedProducts):"",productsReady:cachedProducts!==null,requests:[],ready:false,view:"catalog",editId:"",search:"",category:"all",status:"all",requestSearch:"",requestStatus:"all",media:[],removedPaths:[],dirty:false,autosaveTimer:null,stopProducts:null,stopRequests:null,jerseyExamples:[],jerseyExamplesReady:false,stopJerseyExamples:null,jerseyExampleBusy:false};
 const root = document.querySelector("#adminMain");
 const esc = (value="") => String(value).replace(/[&<>'"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[char]);
 const norm = value => String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
@@ -48,7 +48,7 @@ function goTo(view,id=""){
   if(state.dirty&&state.view==="editor"&&view!=="editor"&&!confirm("Tienes cambios sin guardar. ¿Quieres salir del editor?"))return;
   state.view=view;state.editId=id;state.dirty=false;setActiveNav(view);render();root.focus();
 }
-function render(){if(!state.ready)return;if(state.role!=="admin"){renderDenied();return;}if(state.view==="editor")renderEditor();else if(state.view==="stock")renderStock();else if(state.view==="profile")renderProfile();else if(state.view==="requests")renderRequests();else if(!state.productsReady)renderCatalogLoading();else renderCatalog();updatePendingRequestCount();}
+function render(){if(!state.ready)return;if(state.role!=="admin"){renderDenied();return;}if(state.view==="editor")renderEditor();else if(state.view==="stock")renderStock();else if(state.view==="jerseyExamples")renderJerseyExamples();else if(state.view==="profile")renderProfile();else if(state.view==="requests")renderRequests();else if(!state.productsReady)renderCatalogLoading();else renderCatalog();updatePendingRequestCount();}
 
 function renderCatalogLoading(){root.innerHTML=`<div class="admin-main-shell"><header class="admin-page-head"><div><p class="kicker">GESTIÓN DE CATÁLOGO</p><h1>Mis artículos</h1><span>Sincronizando el catálogo…</span></div></header><div class="admin-loading-list" aria-label="Cargando catálogo">${Array.from({length:5},()=>'<div><i></i><span></span><b></b></div>').join("")}</div></div>`;}
 
@@ -84,6 +84,76 @@ function renderStock(){
 }
 function stockRow(product){return `<article class="admin-stock-row" data-stock-search="${esc((product.name+" "+product.brand+" "+(CATEGORY_LABELS[product.category]||"")).toLowerCase())}"><img src="${esc(product.image)}" alt="${esc(product.name)}" onerror="this.src='producto-1.jpg'"><div><h3>${esc(product.name)}</h3><p>${esc(product.brand||"GinesCloset")} · ${esc(CATEGORY_LABELS[product.category]||product.category)}</p></div><label class="stock-field"><span>Stock</span><input type="number" min="0" value="${product.stock||0}" data-stock-input="${esc(product.id)}"></label></article>`;}
 async function saveStock(id,stock){try{await setDoc(doc(db,"products",id),{stock,updatedAt:serverTimestamp()},{merge:true});showToast("Stock actualizado","success");}catch(error){console.error(error);showToast(firestoreAdminMessage(error,"No se ha podido actualizar el stock."),"error");}}
+
+function renderJerseyExamples(){
+  const examples=state.jerseyExamples;
+  root.innerHTML=`<div class="admin-main-shell"><header class="admin-page-head"><div><p class="kicker">PÁGINA DE FÚTBOL</p><h1>Ejemplos de camisetas</h1><span>Fotos que se muestran como inspiración en la página de Fútbol. Los clientes solo las ven, no las eligen.</span></div><div class="admin-head-actions"><a class="admin-secondary-link" href="futbol.html" target="_blank" rel="noopener">Ver página ↗</a></div></header>
+    <section class="editor-card"><div class="editor-card-head"><h2>Añadir un ejemplo</h2></div>
+      <form id="jerseyExampleForm" novalidate>
+        <div class="admin-field"><span>Nombre o descripción</span><input name="name" maxlength="60" placeholder="Ej. Real Madrid 2024 con parche Champions" required></div>
+        <div class="admin-field"><span>Foto</span>
+          <label class="media-drop" id="exampleDrop"><span>⇧</span><h3>Sube o haz la foto del ejemplo</h3><p>Se optimiza automáticamente.</p><b class="button button-secondary">Elegir de la galería</b><input id="exampleInput" type="file" accept="image/*"></label>
+          <label class="media-camera button button-secondary"><span aria-hidden="true">📷</span> Hacer una foto ahora<input id="exampleCameraInput" type="file" accept="image/*" capture="environment"></label>
+          <div class="jersey-example-preview hidden" id="examplePreview"><img id="examplePreviewImg" alt="Vista previa"></div>
+        </div>
+        <p class="admin-error hidden" id="exampleError" role="alert"></p>
+        <button class="button button-primary" type="submit" id="exampleSave">Guardar ejemplo</button>
+      </form>
+    </section>
+    ${examples.length?`<div class="admin-example-grid">${examples.map(exampleCard).join("")}</div>`:!state.jerseyExamplesReady?`<div class="admin-loading-list">${Array.from({length:3},()=>"<div><i></i><span></span><b></b></div>").join("")}</div>`:`<div class="admin-empty"><span>⚽</span><h2>Todavía no hay ejemplos</h2><p>Añade el primero con el formulario de arriba.</p></div>`}</div>`;
+  bindJerseyExamples();
+}
+function exampleCard(example){return `<article class="admin-example-card"><img src="${esc(example.image||"producto-1.jpg")}" alt="${esc(example.name||"Ejemplo")}" onerror="this.src='producto-1.jpg'"><div><b>${esc(example.name||"Ejemplo")}</b><button class="button button-danger-outline" data-delete-example="${esc(example.id)}" type="button">Eliminar</button></div></article>`;}
+function bindJerseyExamples(){
+  const form=root.querySelector("#jerseyExampleForm");if(!form)return;
+  const input=form.querySelector("#exampleInput"),cameraInput=form.querySelector("#exampleCameraInput"),preview=form.querySelector("#examplePreview"),previewImg=form.querySelector("#examplePreviewImg");
+  let pendingFile=null;
+  const takeFile=file=>{if(!file||!(file.type.startsWith("image/")||/\.(jpe?g|png|webp|heic|heif|avif)$/i.test(file.name)))return;pendingFile=file;previewImg.src=URL.createObjectURL(file);preview.classList.remove("hidden");};
+  input.addEventListener("change",()=>{takeFile(input.files[0]);input.value="";});
+  cameraInput?.addEventListener("change",()=>{takeFile(cameraInput.files[0]);cameraInput.value="";});
+  form.addEventListener("submit",event=>{event.preventDefault();saveJerseyExample(form.elements.name.value.trim(),pendingFile);});
+  root.querySelectorAll("[data-delete-example]").forEach(button=>button.addEventListener("click",()=>deleteJerseyExample(button.dataset.deleteExample)));
+}
+async function saveJerseyExample(name,file){
+  const errorBox=root.querySelector("#exampleError"),button=root.querySelector("#exampleSave");
+  errorBox.classList.add("hidden");
+  if(!name){errorBox.textContent="Escribe un nombre o descripción.";errorBox.classList.remove("hidden");return;}
+  if(!file){errorBox.textContent="Añade una foto del ejemplo.";errorBox.classList.remove("hidden");return;}
+  if(state.jerseyExampleBusy)return;state.jerseyExampleBusy=true;
+  button.disabled=true;button.textContent="Guardando…";
+  let uploadedPath="";
+  try{
+    const compressed=await compressImage(file);
+    const path=`products/${state.user.uid}/example-${Date.now()}-${crypto.randomUUID()}.webp`;
+    const upload=await supabase.storage.from("catalog-media").upload(path,compressed,{cacheControl:"31536000",contentType:"image/webp",upsert:false});
+    if(upload.error)throw new Error(upload.error.message||"Supabase ha rechazado la fotografía.");
+    uploadedPath=path;
+    const publicUrl=supabase.storage.from("catalog-media").getPublicUrl(path).data.publicUrl;
+    await setDoc(doc(collection(db,"jerseyExamples")),{name,image:publicUrl,storagePath:path,createdAt:serverTimestamp()});
+    showToast("Ejemplo añadido","success");
+  }catch(error){
+    console.error(error);
+    if(uploadedPath)await supabase.storage.from("catalog-media").remove([uploadedPath]).catch(()=>{});
+    errorBox.textContent=/row-level|policy/i.test(String(error?.message||""))?"Supabase ha bloqueado la foto. Ejecuta el archivo supabase-storage-policies.sql y vuelve a iniciar sesión.":firestoreAdminMessage(error,"No se ha podido guardar el ejemplo.");
+    errorBox.classList.remove("hidden");
+  }finally{
+    state.jerseyExampleBusy=false;button.disabled=false;button.textContent="Guardar ejemplo";
+  }
+}
+function deleteJerseyExample(id){
+  const example=state.jerseyExamples.find(item=>item.id===id);if(!example)return;
+  document.body.insertAdjacentHTML("beforeend",`<div class="admin-dialog-backdrop" id="deleteExampleDialog"><section class="admin-dialog" role="dialog" aria-modal="true"><span>⌫</span><h2>¿Eliminar este ejemplo?</h2><p>Dejará de verse en la página de Fútbol. Esta acción no se puede deshacer.</p><div class="dialog-product"><img src="${esc(example.image)}" alt=""><b>${esc(example.name||"Ejemplo")}</b></div><div class="dialog-actions"><button data-dialog-cancel type="button">Cancelar</button><button class="danger" data-dialog-confirm type="button">Eliminar</button></div></section></div>`);
+  const dialog=document.querySelector("#deleteExampleDialog");
+  dialog.querySelector("[data-dialog-cancel]").addEventListener("click",()=>dialog.remove());
+  dialog.querySelector("[data-dialog-confirm]").addEventListener("click",async()=>{
+    const button=dialog.querySelector("[data-dialog-confirm]");button.disabled=true;button.textContent="Eliminando…";
+    try{
+      await deleteDoc(doc(db,"jerseyExamples",id));
+      if(example.storagePath)await supabase.storage.from("catalog-media").remove([example.storagePath]).catch(()=>{});
+      dialog.remove();showToast("Ejemplo eliminado","success");
+    }catch(error){console.error(error);button.disabled=false;button.textContent="Eliminar";showToast(firestoreAdminMessage(error,"No se ha podido eliminar el ejemplo."),"error");}
+  });
+}
 function requestDate(value){const date=value?.toDate?value.toDate():value?.seconds?new Date(value.seconds*1000):null;return date&&!Number.isNaN(date.getTime())?new Intl.DateTimeFormat("es-ES",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}).format(date):"Ahora";}
 function requestStatusLabel(status){return status==="offered"?"Oferta enviada":status==="closed"?"Cerrada":"Pendiente";}
 function customerDisplayName(request){const name=request.customerName||"";if(name&&name!=="Cliente")return name;const email=request.customerEmail||"";return email?email.split("@")[0]:"Cliente";}
@@ -101,7 +171,7 @@ async function deleteRequest(id,dialog){const button=dialog.querySelector("[data
 function emptyEditorModel(){return{id:"",name:"",brand:"",category:"camisetas",price:"Consultar",description:"",badge:"NUEVO",sizes:["S","M","L"],active:false,condition:"Muy buen estado",color:"",material:"",measurements:"",authenticity:"",unique:true,createdOrder:Date.now(),images:[],storagePaths:[],stock:0};}
 function editorProduct(){return state.editId?state.products.find(item=>item.id===state.editId):null;}
 function prepareMedia(product){state.media=product?productImages(product).map((url,index)=>({id:`existing-${index}`,url,path:product.storagePaths[index]||"",file:null,existing:true})) : [];state.removedPaths=[];}
-const QUICK_BRANDS = ["Louis Vuitton","Gucci","Prada","Balenciaga","Dior","Off-White","Stone Island","Sp5der","Palm Angels","Ami","Amiri","Hugo Boss","Moncler","Nike","Adidas","New Balance","Chrome Hearts","Saint Laurent","Loewe","Valentino","Burberry"];
+const QUICK_BRANDS = ["Louis Vuitton","Gucci","Prada","Balenciaga","Dior","Off-White","Stone Island","Sp5der","Palm Angels","Ami","Ami Paris","Amiri","Hugo Boss","Moncler","Nike","Adidas","New Balance","Chrome Hearts","Saint Laurent","Loewe","Valentino","Burberry"];
 const QUICK_SIZES = {
   "camisetas": ["XS","S","M","L","XL","XXL"],
   "sudaderas": ["S","M","L","XL","XXL"],
@@ -114,6 +184,8 @@ const QUICK_SIZES = {
   "pantalones-cortos": ["S","M","L","XL"],
   "pantalones-largos": ["S","M","L","XL"],
   "bolsos": ["Única"],
+  "mochilas": ["Única"],
+  "gorros": ["Única"],
   "carteras": ["Única"],
   "rinoneras": ["Única"]
 };
@@ -158,6 +230,7 @@ function renderEditor(){
           <div class="admin-field"><span>Autenticidad</span><input name="authenticity" maxlength="100" value="${esc(product.authenticity||"")}" placeholder="Ej. Original verificado"></div>
         </div>
         <div class="admin-field"><span>Medidas</span><input name="measurements" maxlength="300" value="${esc(product.measurements||"")}" placeholder="Ej. Pecho 54 cm · Largo 68 cm"></div>
+        <div class="admin-field"><span>Unidades en stock</span><input name="stock" type="number" min="0" step="1" inputmode="numeric" value="${Number(product.stock)||0}" placeholder="0"><small class="profile-help">0 = se pide por encargo (5–10 días). 1 o más = aparece en “En stock” con entrega inmediata.</small></div>
         <div class="admin-toggle-grid">
           <label class="publish-toggle"><input name="unique" type="checkbox" ${product.unique!==false?"checked":""}><i></i><span><b>Pieza única</b><small>Solo existe una unidad.</small></span></label>
           <label class="publish-toggle"><input name="active" type="checkbox" ${product.active?"checked":""}><i></i><span><b>Publicar ahora</b><small>Visible en la tienda.</small></span></label>
@@ -165,7 +238,8 @@ function renderEditor(){
       </section>
 
       <section class="editor-card"><div class="editor-card-head"><h2>Fotografías</h2><span class="autosave-state">Máximo 8 imágenes</span></div>
-        <label class="media-drop" id="mediaDrop"><span>⇧</span><h3>Arrastra tus fotos aquí</h3><p>JPG, PNG o WEBP. Se optimizarán automáticamente.</p><b class="button button-secondary">Seleccionar archivos</b><input id="mediaInput" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+        <label class="media-drop" id="mediaDrop"><span>⇧</span><h3>Arrastra o elige tus fotos</h3><p>Se optimizan automáticamente. En el móvil también puedes hacer la foto en el momento.</p><b class="button button-secondary">Elegir de la galería</b><input id="mediaInput" type="file" accept="image/*" multiple></label>
+        <label class="media-camera button button-secondary"><span aria-hidden="true">📷</span> Hacer una foto ahora<input id="mediaCameraInput" type="file" accept="image/*" capture="environment"></label>
         <div class="media-grid" id="mediaGrid"></div>
         <div class="upload-progress hidden" id="uploadProgress"><i></i></div>
       </section>
@@ -199,17 +273,17 @@ function bindEditor(){
   
   form.querySelector("#sizeTrigger").addEventListener("click",event=>{const menu=form.querySelector("#sizeMenu"),open=menu.classList.toggle("hidden")===false;event.currentTarget.setAttribute("aria-expanded",String(open));});
   form.querySelectorAll('#sizeMenu input').forEach(input=>input.addEventListener("change",()=>{renderSizeChips();state.dirty=true;updatePreview();scheduleAutosave();}));
-  const input=form.querySelector("#mediaInput"),drop=form.querySelector("#mediaDrop");input.addEventListener("change",()=>addMediaFiles(input.files));drop.addEventListener("dragover",event=>{event.preventDefault();drop.classList.add("dragover")});drop.addEventListener("dragleave",()=>drop.classList.remove("dragover"));drop.addEventListener("drop",event=>{event.preventDefault();drop.classList.remove("dragover");addMediaFiles(event.dataTransfer.files)});
+  const input=form.querySelector("#mediaInput"),drop=form.querySelector("#mediaDrop"),cameraInput=form.querySelector("#mediaCameraInput");input.addEventListener("change",()=>{addMediaFiles(input.files);input.value="";});cameraInput?.addEventListener("change",()=>{addMediaFiles(cameraInput.files);cameraInput.value="";});drop.addEventListener("dragover",event=>{event.preventDefault();drop.classList.add("dragover")});drop.addEventListener("dragleave",()=>drop.classList.remove("dragover"));drop.addEventListener("drop",event=>{event.preventDefault();drop.classList.remove("dragover");addMediaFiles(event.dataTransfer.files)});
   form.querySelectorAll("[data-save]").forEach(button=>button.addEventListener("click",()=>saveProduct(button.dataset.save)));
 }
 function selectedSizes(){return [...root.querySelectorAll('#sizeMenu input:checked')].map(input=>input.value);}
 function renderSizeChips(){const chips=root.querySelector("#sizeChips"),selected=selectedSizes();chips.innerHTML=selected.length?selected.map(size=>`<i class="size-chip">${esc(size)}</i>`).join(""):"Seleccionar tallas";}
-function draftFromForm(){const form=root.querySelector("#productForm"),data=new FormData(form),category=String(data.get("category")||"camisetas");return{name:String(data.get("name")||"").trim(),brand:String(data.get("brand")||"").trim(),category,price:String(data.get("price")||"Consultar").trim()||"Consultar",description:String(data.get("description")||"").trim(),badge:String(data.get("badge")||"").trim(),condition:String(data.get("condition")||"Muy buen estado").trim(),color:String(data.get("color")||"").trim(),material:String(data.get("material")||"").trim(),measurements:String(data.get("measurements")||"").trim(),authenticity:String(data.get("authenticity")||"").trim(),unique:Boolean(form.elements.unique?.checked),sizes:SINGLE_SIZE_CATEGORIES.has(category)?["Única"]:selectedSizes().filter(size=>size!=="Única"),active:form.elements.active.checked,createdOrder:state.editorDraft?.createdOrder||Date.now()};}
+function draftFromForm(){const form=root.querySelector("#productForm"),data=new FormData(form),category=String(data.get("category")||"camisetas");return{name:String(data.get("name")||"").trim(),brand:String(data.get("brand")||"").trim(),category,price:String(data.get("price")||"Consultar").trim()||"Consultar",description:String(data.get("description")||"").trim(),badge:String(data.get("badge")||"").trim(),condition:String(data.get("condition")||"Muy buen estado").trim(),color:String(data.get("color")||"").trim(),material:String(data.get("material")||"").trim(),measurements:String(data.get("measurements")||"").trim(),authenticity:String(data.get("authenticity")||"").trim(),unique:Boolean(form.elements.unique?.checked),sizes:SINGLE_SIZE_CATEGORIES.has(category)?["Única"]:selectedSizes().filter(size=>size!=="Única"),active:form.elements.active.checked,stock:Math.max(0,Math.trunc(Number(data.get("stock"))||0)),createdOrder:state.editorDraft?.createdOrder||Date.now()};}
 function scheduleAutosave(){clearTimeout(state.autosaveTimer);const status=root.querySelector("#autosaveState");if(status){status.textContent="Guardando borrador local…";status.classList.remove("saved");}state.autosaveTimer=setTimeout(()=>{if(!state.editId)localStorage.setItem("gc_admin_draft",JSON.stringify(draftFromForm()));if(status){status.textContent="Borrador local guardado";status.classList.add("saved");}},700);}
 function updatePreview(){const product=draftFromForm(),image=state.media[0]?.url;const imageRoot=root.querySelector("#previewImage");if(imageRoot)imageRoot.innerHTML=image?`<img src="${esc(image)}" alt="Vista previa">`:'<span>◇</span>';root.querySelector("#previewMeta").textContent=`${product.brand||"Marca"} · ${product.condition||"Estado"}`;root.querySelector("#previewName").textContent=product.name||"Nombre del artículo";root.querySelector("#previewPrice").textContent=price(product.price);root.querySelector("#previewSizes").innerHTML=`${product.unique?'<b>PIEZA ÚNICA</b>':""}${product.sizes.map(size=>`<i>${esc(size)}</i>`).join("")}`;}
 
 async function addMediaFiles(fileList){
-  const files=[...fileList].filter(file=>/^image\/(jpeg|png|webp)$/.test(file.type));if(!files.length){showToast("Selecciona fotografías JPG, PNG o WEBP.","error");return;}if(state.media.length+files.length>8){showToast("Puedes añadir un máximo de 8 fotografías.","error");return;}
+  const files=[...fileList].filter(file=>file.type.startsWith("image/")||/\.(jpe?g|png|webp|heic|heif|avif|gif|bmp)$/i.test(file.name));if(!files.length){showToast("Selecciona o haz una foto.","error");return;}if(state.media.length+files.length>8){showToast("Puedes añadir un máximo de 8 fotografías.","error");return;}
   for(const file of files){try{const compressed=await compressImage(file);state.media.push({id:`new-${crypto.randomUUID()}`,url:URL.createObjectURL(compressed),file:compressed,path:"",existing:false});}catch(error){console.error(error);showToast(`No se pudo preparar ${file.name}.`,"error");}}
   state.dirty=true;renderMedia();updatePreview();
 }
@@ -273,4 +347,5 @@ onAuthStateChanged(auth,async user=>{
   render();
   state.stopProducts?.();state.stopProducts=onSnapshot(collection(db,"products"),snapshot=>{const products=snapshot.docs.map(item=>normalizeProduct({id:item.id,...item.data()})).sort((a,b)=>Number(b.createdOrder||0)-Number(a.createdOrder||0));const signature=productSignature(products),changed=!state.productsReady||signature!==state.productSignature;state.products=products;state.productSignature=signature;state.productsReady=true;writeProductCache(products);if(changed&&state.view!=="editor")render();},error=>{console.error(error);if(!state.productsReady)state.products=[];state.productsReady=true;if(state.view!=="editor")render();showToast(firestoreAdminMessage(error,"No se ha podido conectar con el catálogo de Firebase."),"error");});
   state.stopRequests?.();state.stopRequests=onSnapshot(collection(db,"requests"),snapshot=>{state.requests=snapshot.docs.map(item=>({id:item.id,...item.data()})).sort((a,b)=>Number(b.createdAt?.seconds||0)-Number(a.createdAt?.seconds||0));updatePendingRequestCount();if(state.view==="requests")renderRequests();},error=>{console.error(error);state.requests=[];updatePendingRequestCount();if(state.view==="requests")renderRequests();showToast(firestoreAdminMessage(error,"No se han podido cargar las solicitudes."),"error");});
+  state.stopJerseyExamples?.();state.stopJerseyExamples=onSnapshot(collection(db,"jerseyExamples"),snapshot=>{state.jerseyExamples=snapshot.docs.map(item=>({id:item.id,...item.data()})).sort((a,b)=>Number(b.createdAt?.seconds||0)-Number(a.createdAt?.seconds||0));state.jerseyExamplesReady=true;if(state.view==="jerseyExamples")renderJerseyExamples();},error=>{console.error(error);state.jerseyExamplesReady=true;if(state.view==="jerseyExamples")renderJerseyExamples();});
 });

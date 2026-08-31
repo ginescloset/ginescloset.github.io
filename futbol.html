@@ -13,8 +13,8 @@
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://firestore.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap">
-  <link rel="stylesheet" href="styles.css?v=28.0">
-  <script type="module" src="app.js?v=28.0"></script>
+  <link rel="stylesheet" href="styles.css?v=40.0">
+  <script type="module" src="app.js?v=40.0"></script>
 </head>
 <body data-page="futbol">
   <a class="skip-link" href="#mainContent">Saltar al contenido</a>
@@ -68,10 +68,11 @@
                 <label class="media-drop" id="jerseyDrop">
                   <span>📷</span>
                   <h3>Sube una foto de la camiseta</h3>
-                  <p>JPG, PNG o WEBP</p>
-                  <b class="button button-secondary">Seleccionar imagen</b>
-                  <input id="jerseyInput" type="file" accept="image/jpeg,image/png,image/webp">
+                  <p>Elígela de la galería o hazla ahora mismo</p>
+                  <b class="button button-secondary">Elegir de la galería</b>
+                  <input id="jerseyInput" type="file" accept="image/*">
                 </label>
+                <label class="media-camera button button-secondary"><span aria-hidden="true">📷</span> Hacer una foto ahora<input id="jerseyCameraInput" type="file" accept="image/*" capture="environment"></label>
                 <div class="jersey-preview-img hidden" id="jerseyPreview">
                   <img id="jerseyPreviewImg" src="" alt="Vista previa">
                   <button type="button" id="removeJersey" class="remove-btn">×</button>
@@ -101,15 +102,35 @@
               </div>
               <div class="admin-field">
                 <span>Talla</span>
+                <p class="size-group-label">Adulto</p>
                 <div class="size-quick-row">
-                  <button type="button" class="size-btn" data-size="XS">XS</button>
                   <button type="button" class="size-btn" data-size="S">S</button>
                   <button type="button" class="size-btn active" data-size="M">M</button>
                   <button type="button" class="size-btn" data-size="L">L</button>
                   <button type="button" class="size-btn" data-size="XL">XL</button>
                   <button type="button" class="size-btn" data-size="XXL">XXL</button>
+                  <button type="button" class="size-btn" data-size="3XL">3XL</button>
+                  <button type="button" class="size-btn" data-size="4XL">4XL</button>
+                  <button type="button" class="size-btn" data-size="5XL">5XL</button>
+                </div>
+                <p class="size-group-label">Niño (edad)</p>
+                <div class="size-quick-row">
+                  <button type="button" class="size-btn" data-size="Niño 2-3">2-3</button>
+                  <button type="button" class="size-btn" data-size="Niño 4-5">4-5</button>
+                  <button type="button" class="size-btn" data-size="Niño 6-7">6-7</button>
+                  <button type="button" class="size-btn" data-size="Niño 8-9">8-9</button>
+                  <button type="button" class="size-btn" data-size="Niño 10-11">10-11</button>
+                  <button type="button" class="size-btn" data-size="Niño 12-13">12-13</button>
                 </div>
                 <input type="hidden" id="jerseySize" value="M">
+                <details class="size-guide">
+                  <summary>📏 Ver guía de tallas</summary>
+                  <div class="size-guide-body">
+                    <figure><figcaption>Adulto · medidas en cm</figcaption><img src="guia-tallas-adulto.jpg" alt="Guía de tallas de adulto para camisetas de fútbol" decoding="async"></figure>
+                    <figure><figcaption>Niño · medidas en cm</figcaption><img src="guia-tallas-nino.jpg" alt="Guía de tallas de niño para camisetas de fútbol" decoding="async"></figure>
+                    <p class="size-guide-note">Guía orientativa solo para camisetas de fútbol. Puede haber una desviación de 2-3 cm por medición manual.</p>
+                  </div>
+                </details>
               </div>
             </div>
           </section>
@@ -140,6 +161,22 @@
                       <span class="patch-icon">⭐</span>
                       <b>Champions</b>
                       <small>Champions League</small>
+                    </div>
+                  </label>
+                  <label class="patch-type-option">
+                    <input type="checkbox" name="patch" value="europa">
+                    <div class="patch-card">
+                      <span class="patch-icon">🌟</span>
+                      <b>Europa League</b>
+                      <small>UEFA Europa League</small>
+                    </div>
+                  </label>
+                  <label class="patch-type-option">
+                    <input type="checkbox" name="patch" value="conference">
+                    <div class="patch-card">
+                      <span class="patch-icon">✨</span>
+                      <b>Conference League</b>
+                      <small>UEFA Conference League</small>
                     </div>
                   </label>
                   <label class="patch-type-option">
@@ -221,6 +258,11 @@
         </aside>
       </div>
     </section>
+
+    <section class="jersey-examples-section section-shell hidden" id="jerseyExamplesSection" aria-label="Ejemplos de camisetas">
+      <div class="section-heading"><div><p class="kicker blue">INSPIRACIÓN</p><h2>Ejemplos de<br><em>trabajos hechos.</em></h2></div><p>Algunas camisetas que hemos preparado. Sirven de referencia para tu diseño.</p></div>
+      <div class="jersey-examples-grid" id="jerseyExamplesGrid"></div>
+    </section>
   </main>
 
   <footer class="site-footer compact">
@@ -289,27 +331,27 @@
 
       // Subir imagen
       const jerseyInput = document.getElementById("jerseyInput");
+      const jerseyCameraInput = document.getElementById("jerseyCameraInput");
       const jerseyDrop = document.getElementById("jerseyDrop");
       const jerseyPreview = document.getElementById("jerseyPreview");
       const jerseyPreviewImg = document.getElementById("jerseyPreviewImg");
       const removeJersey = document.getElementById("removeJersey");
 
-      if (jerseyInput) {
-        jerseyInput.addEventListener("change", (e) => {
-          const file = e.target.files[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-              state.jerseyImage = ev.target.result;
-              jerseyPreviewImg.src = ev.target.result;
-              jerseyPreview.classList.remove("hidden");
-              jerseyDrop.classList.add("hidden");
-              updatePreview();
-            };
-            reader.readAsDataURL(file);
-          }
-        });
-      }
+      const loadJerseyFile = (file) => {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          state.jerseyImage = ev.target.result;
+          jerseyPreviewImg.src = ev.target.result;
+          jerseyPreview.classList.remove("hidden");
+          jerseyDrop.classList.add("hidden");
+          updatePreview();
+        };
+        reader.readAsDataURL(file);
+      };
+
+      if (jerseyInput) jerseyInput.addEventListener("change", (e) => { loadJerseyFile(e.target.files[0]); e.target.value = ""; });
+      if (jerseyCameraInput) jerseyCameraInput.addEventListener("change", (e) => { loadJerseyFile(e.target.files[0]); e.target.value = ""; });
 
       if (jerseyDrop) {
         jerseyDrop.addEventListener("dragover", (e) => { e.preventDefault(); jerseyDrop.classList.add("dragover"); });
@@ -390,7 +432,7 @@
         previewNumber.textContent = state.jerseyNumber || "00";
         previewSize.textContent = `Talla: ${state.size}`;
         
-        const patchLabels = { liga: "Liga", champions: "Champions", copa: "Copa", mundial: "Mundial", escudo: "Escudo", marca: "Marca" };
+        const patchLabels = { liga: "Liga", champions: "Champions", europa: "Europa League", conference: "Conference League", copa: "Copa", mundial: "Mundial", escudo: "Escudo", marca: "Marca" };
         const allPatches = [...state.patches.map(p => patchLabels[p] || p), state.customPatch].filter(Boolean);
         previewPatches.textContent = allPatches.length ? allPatches.join(", ") : "Sin parches";
 
@@ -416,7 +458,7 @@
       const sendBtn = document.getElementById("sendWhatsApp");
       if (sendBtn) {
         sendBtn.addEventListener("click", () => {
-          const patchLabels = { liga: "Liga", champions: "Champions", copa: "Copa", mundial: "Mundial", escudo: "Escudo", marca: "Marca" };
+          const patchLabels = { liga: "Liga", champions: "Champions", europa: "Europa League", conference: "Conference League", copa: "Copa", mundial: "Mundial", escudo: "Escudo", marca: "Marca" };
           const allPatches = [...state.patches.map(p => patchLabels[p] || p), state.customPatch].filter(Boolean);
           
           let message = `⚽ *SOLICITUD DE CAMISETA PERSONALIZADA*\n\n`;

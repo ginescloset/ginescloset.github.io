@@ -1,7 +1,7 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="es" class="gc-auth-pending">
 <head>
-  <meta charset="utf-8"><meta name="gc-release" content="2026.08.02-r28">
+  <meta charset="utf-8"><meta name="gc-release" content="2026.08.31-r40">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="GinesCloset: una selección cuidada de moda de lujo y streetwear.">
   <meta property="og:title" content="GinesCloset | Piezas que hablan por ti">
@@ -14,8 +14,8 @@
   <link rel="apple-touch-icon" href="ginescloset-logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="preconnect" href="https://firestore.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap">
-  <link rel="stylesheet" href="styles.css?v=28.0">
-  <script type="module" src="app.js?v=28.0"></script>
+  <link rel="stylesheet" href="styles.css?v=40.0">
+  <script type="module" src="app.js?v=40.0"></script>
 </head>
 <body data-page="home">
   <a class="skip-link" href="#mainContent">Saltar al contenido</a>
@@ -59,9 +59,68 @@
 
     <div class="brand-ticker" aria-hidden="true"><div>CURATED BRANDS <b>✦</b> NUEVAS PIEZAS <b>✦</b> ESTILO SIN REGLAS <b>✦</b> CURATED BRANDS <b>✦</b> NUEVAS PIEZAS <b>✦</b> ESTILO SIN REGLAS <b>✦</b></div></div>
 
+    <section class="home-stats section-shell" id="homeStats" data-reveal aria-label="GinesCloset en cifras">
+      <article><b><span data-count-key="products">0</span></b><span>piezas en selección</span></article>
+      <article><b><span data-count-key="brands">0</span></b><span>firmas representadas</span></article>
+      <article><b><span data-count-key="fresh">0</span></b><span>novedades · últimos 7 días</span></article>
+      <article class="home-stats-note"><b>Gines</b><span>Sevilla · trato directo 1 a 1</span></article>
+    </section>
+
+    <section class="home-how section-shell" data-reveal aria-label="Cómo funciona">
+      <div class="section-heading"><div><p class="kicker blue">CÓMO FUNCIONA</p><h2>Del carrito<br><em>a tu puerta.</em></h2></div><p class="how-intro">GinesCloset trabaja por encargo. No pagas nada al hacer la consulta: primero ves tu oferta y decides. Toca un paso para fijarlo.</p></div>
+      <div class="how-carousel" id="howCarousel">
+        <div class="how-track" id="howTrack">
+          <button class="how-step" type="button" data-step="1" aria-pressed="false"><span class="how-num">01</span><h3>Explora el catálogo</h3><p>Cientos de piezas seleccionadas: ropa, calzado, bolsos, gorros y camisetas de fútbol personalizables.</p></button>
+          <button class="how-step" type="button" data-step="2" aria-pressed="false"><span class="how-num">02</span><h3>Arma tu carrito</h3><p>Guarda todo lo que te guste. No es una compra: es tu lista para pedir presupuesto.</p></button>
+          <button class="how-step" type="button" data-step="3" aria-pressed="false"><span class="how-num">03</span><h3>Envía la solicitud</h3><p>Con un clic tu selección llega a GinesCloset. No se cobra nada en la web.</p></button>
+          <button class="how-step" type="button" data-step="4" aria-pressed="false"><span class="how-num">04</span><h3>Recibe tu oferta</h3><p>Revisamos disponibilidad y precio y te escribimos por WhatsApp con el total del conjunto.</p></button>
+          <button class="how-step" type="button" data-step="5" aria-pressed="false"><span class="how-num">05</span><h3>Confirma y paga</h3><p>Si la oferta te convence, confirmas y realizas el pago. Ahí arranca tu pedido.</p></button>
+          <button class="how-step" type="button" data-step="6" aria-pressed="false"><span class="how-num">06</span><h3>Preparamos el pedido</h3><p>Lo encargamos y le hacemos seguimiento. Plazo habitual: entre 5 y 10 días laborables.</p></button>
+          <button class="how-step" type="button" data-step="7" aria-pressed="false"><span class="how-num">07</span><h3>Recíbelo</h3><p>En cuanto llega, te lo entregamos. Cualquier duda, seguimos hablando por WhatsApp.</p></button>
+        </div>
+      </div>
+    </section>
+
     <section class="selection section-shell" id="selection" data-reveal>
       <div class="section-heading"><div><p class="kicker blue">SELECCIÓN GC</p><h2>Elegidos para ti.</h2></div><a href="catalogo.html">Ver catálogo completo <span>→</span></a></div>
       <div class="product-grid home-product-grid" id="homeFeatured" aria-live="polite"></div>
+    </section>
+
+    <section class="home-categories section-shell" id="homeCategories" data-reveal>
+      <div class="section-heading"><div><p class="kicker blue">EXPLORA</p><h2>Entra por categoría.</h2></div><a href="catalogo.html">Ver todo el catálogo <span>→</span></a></div>
+      <div class="category-cards">
+        <a href="catalogo.html?categoria=camisetas"><span>Camisetas</span><b data-cat-count="camisetas">0</b><i>→</i></a>
+        <a href="catalogo.html?categoria=sudaderas"><span>Sudaderas</span><b data-cat-count="sudaderas">0</b><i>→</i></a>
+        <a href="catalogo.html?categoria=zapatos"><span>Zapatos</span><b data-cat-count="zapatos">0</b><i>→</i></a>
+        <a href="catalogo.html?categoria=abrigos"><span>Abrigos</span><b data-cat-count="abrigos">0</b><i>→</i></a>
+        <a href="catalogo.html?categoria=vaqueros"><span>Vaqueros</span><b data-cat-count="vaqueros">0</b><i>→</i></a>
+        <a href="catalogo.html?categoria=bolsos"><span>Bolsos</span><b data-cat-count="bolsos">0</b><i>→</i></a>
+      </div>
+    </section>
+
+    <section class="home-install section-shell" id="homeInstall" data-reveal aria-label="Instala la app en el móvil">
+      <div class="section-heading"><div><p class="kicker blue">APP PARA EL MÓVIL</p><h2>Añádela a tu<br><em>pantalla de inicio.</em></h2></div><p class="how-intro">GinesCloset se instala como una app: se abre a pantalla completa, sin barra del navegador, y casi no ocupa espacio.</p></div>
+      <button class="button button-primary home-install-cta hidden" id="installAppBtn" type="button">Instalar ahora <span>↓</span></button>
+      <div class="install-guides">
+        <article class="install-card">
+          <p class="install-plat">iPhone · Safari</p>
+          <ol>
+            <li>Abre <b>ginescloset</b> en <b>Safari</b> (no vale Chrome en iPhone).</li>
+            <li>Toca el botón <b>Compartir</b>: el cuadrado con la flecha hacia arriba, abajo en el centro.</li>
+            <li>Desliza y pulsa <b>«Añadir a pantalla de inicio»</b>.</li>
+            <li>Pulsa <b>«Añadir»</b> arriba a la derecha. Listo: ya tienes el icono.</li>
+          </ol>
+        </article>
+        <article class="install-card">
+          <p class="install-plat">Android · Chrome</p>
+          <ol>
+            <li>Abre <b>ginescloset</b> en <b>Chrome</b>.</li>
+            <li>Toca el menú <b>⋮</b> arriba a la derecha.</li>
+            <li>Pulsa <b>«Instalar aplicación»</b> (o <b>«Añadir a pantalla de inicio»</b>).</li>
+            <li>Confirma en <b>«Instalar»</b>. El icono aparece con el resto de tus apps.</li>
+          </ol>
+        </article>
+      </div>
     </section>
 
     <section class="manifesto section-shell" data-reveal>

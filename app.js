@@ -16,15 +16,15 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const page = document.body.dataset.page;
 
-const BRANDS = ["Acne Studios","Adidas","Aimé Leon Dore","Alain Mikli","Alberta Ferretti","Alberto Biani","Alexander McQueen","Alice + Olivia","Ami","Amiri","Andrea Pfister","Ann Demeulemeester","Anna Sui","Anthropologie","A.P.C.","Arc'teryx","ASICS","Balenciaga","Balmain","Barbour","Bape","Base London","Beams Plus","Beats","Bershka","Billionaire Boys Club","Billabong","Blend","Blumarine","Boiler Room","Bogner","Bompard","Bottega Veneta","Boucheron","Breguet","Brioni","Bstroy","Brunello Cucinelli","Bulgari","Burberry","Cactus Plant Flea Market","Calvin Klein","Canada Goose","Carhartt WIP","Casa Blanca","Cartier","Celine","Chanel","Chloé","Chrome Hearts","Corteiz","Costume National","Courrèges","Cortez","Cotton Citizen","Cruz","Daily Paper","Denim Tears","Dsquared2","DUAA","Dior","Dior Homme","DKNY","Dolce & Gabbana","Dolce & Gabbana","Double Rainbow","Dries Van Noten","Eddie Bauer","Egon Schiele","Elie Saab","Emporio Armani","Enfants Riches Déprimés","ERD","Escada","Essentials","Etro","Fendi","Fila","Filling Pieces","Fiorucci","Foamposite","Fred Perry","Furla","Futur","GCDS","GmbH","Godspeed","Golden Goose","Goldbergh","Golf Wang","Goodhood","Gosha Rubchinskiy","Gucci","Guess","H&M","Harris Wharf London","Hellstar","Helmut Lang","Hermès","Hoka","Hugo Boss","Hummel","Iceberg","Isabel Marent","Isabel Marant","Ivy Park","J.Crew","Jacquemus","Jil Sander","Jimmy Choo","Jordan","Juicy Couture","JW Anderson","Kangol","Karl Lagerfeld","Kenzo","Kith","Karl Kani","Kiton","Ksubi","Kway","Lacoste","Lanvin","Lardini","Le Coq Sportif","Levi's","Lemaire","Loewe","Longchamp","Louis Vuitton","Loro Piana","Luciano Barbera","Luisa Beccaria","Lululemon","Mackage","Maison Kitsuné","Maison Margiela","Majestic Filatures","Mango","Manolo Blahnik","Marc Jacobs","Margaret Howell","Marine Serre","Markus Lupfer","Marni","Mastermind Japan","McQ Alexander McQueen","Miu Miu","Moncler","Moncler Grenoble","Moose Knuckles","Moschino","Mountain Hardwear","MSGM","Napapijri","Neil Barrett","New Balance","New Era","New Look","Nike","Noah","Norse Projects","North Face","Nudie Jeans","Number (N)ine","Oakley","Off-White","Olive Clothing","On Running","Opening Ceremony","Orlebar Brown","Oversize","Palm Angels","Patagonia","Paul Smith","Peak Performance","Polo Ralph Lauren","Prada","Pronounce","Puma","Purple","Raf Simons","Rag & Bone","Rains","Ralph Lauren","Ray-Ban","Reebok","Rejina Pyo","Rellik","Rick Owens","Roberto Cavalli","Rodarte","Rolex","Rouje","RTA","Sacai","Saint Laurent","Salomon","Samsonite","Sandro","Satisfyer","Schott NYC","Scotch & Soda","Sean John","Sergio Rossi","Sessun","Stone Island","Sp5der","Stussy","Suicoke","Supreme","Sweaty Betty","Takumi","Tasaki","Ted Baker","The Fader","The Kooples","The North Face","Thom Browne","Thom Krom","Tiffany & Co.","Timberland","Tod's","Tom Ford","Tommy Hilfiger","Tory Burch","True Religion","Twinset","Ugg","Under Armour","Uniqlo","Valentino","Van Cleef & Arpels","Vans","Versace","Victorinox","Vivienne Westwood","Vlone","Wandler","We11done","Woolrich","Wrangler","Y-3","Yeezy","Yohji Yamamoto","Zadig & Voltaire","Zara","Zegna"];
+const BRANDS = ["Acne Studios","Adidas","Aimé Leon Dore","Alain Mikli","Alberta Ferretti","Alberto Biani","Alexander McQueen","Alice + Olivia","Ami","Ami Paris","Amiri","Andrea Pfister","Ann Demeulemeester","Anna Sui","Anthropologie","A.P.C.","Arc'teryx","ASICS","Balenciaga","Balmain","Barbour","Bape","Base London","Beams Plus","Beats","Bershka","Billionaire Boys Club","Billabong","Birkenstock","Blend","Blumarine","Boiler Room","Bogner","Bompard","Bottega Veneta","Boucheron","Breguet","Brioni","Bstroy","Brunello Cucinelli","Bulgari","Burberry","Cactus Plant Flea Market","Calvin Klein","Canada Goose","Carhartt WIP","Casa Blanca","Cartier","Celine","Chanel","Chloé","Chrome Hearts","Corteiz","Costume National","Courrèges","Cortez","Cotton Citizen","Cruz","Daily Paper","Denim Tears","Dsquared2","DUAA","Dior","Dior Homme","DKNY","Dolce & Gabbana","Dolce & Gabbana","Double Rainbow","Dries Van Noten","Eddie Bauer","Egon Schiele","Elie Saab","Emporio Armani","Enfants Riches Déprimés","ERD","Eric Emanuel","Escada","Essentials","Etro","Fendi","Fila","Filling Pieces","Fiorucci","Foamposite","Fred Perry","Furla","Futur","GCDS","GmbH","Godspeed","Golden Goose","Goldbergh","Golf Wang","Goodhood","Gosha Rubchinskiy","Goyard","Gucci","Guess","H&M","Harris Wharf London","Hellstar","Helmut Lang","Hermès","Hoka","Hugo Boss","Hummel","Iceberg","Isabel Marent","Isabel Marant","Ivy Park","J.Crew","Jacquemus","Jil Sander","Jimmy Choo","Jordan","Juicy Couture","JW Anderson","Kangol","Karl Lagerfeld","Kenzo","Kith","Karl Kani","Kiton","Ksubi","Kway","Lacoste","Lanvin","Lardini","Le Coq Sportif","Levi's","Lemaire","Loewe","Longchamp","Louis Vuitton","Loro Piana","Luciano Barbera","Luisa Beccaria","Lululemon","Mackage","Maison Kitsuné","Maison Margiela","Majestic Filatures","Mango","Manolo Blahnik","Marc Jacobs","Margaret Howell","Marine Serre","Markus Lupfer","Marni","Mastermind Japan","McQ Alexander McQueen","Miu Miu","Moncler","Moncler Grenoble","Moose Knuckles","Moschino","Mountain Hardwear","MSGM","Napapijri","Neil Barrett","New Balance","New Era","New Look","Nike","Noah","Norse Projects","North Face","Nudie Jeans","Number (N)ine","Numeris","Oakley","Off-White","Olive Clothing","On Running","Opening Ceremony","Orlebar Brown","Oversize","Palm Angels","Patagonia","Paul Smith","Peak Performance","Polo Ralph Lauren","Prada","Pronounce","Puma","Purple","Raf Simons","Rag & Bone","Rains","Ralph Lauren","Ray-Ban","Reebok","Rejina Pyo","Rellik","Rhude","Rick Owens","Roberto Cavalli","Rodarte","Rolex","Rouje","RTA","Sacai","Saint Laurent","Salomon","Samsonite","Sandro","Satisfyer","Schott NYC","Scotch & Soda","Sean John","Sergio Rossi","Sessun","Stone Island","Sp5der","Stussy","Suicoke","Supreme","Sweaty Betty","Syna World","Takumi","Tasaki","Ted Baker","The Fader","The Kooples","The North Face","Thom Browne","Thom Krom","Tiffany & Co.","Timberland","Tod's","Tom Ford","Tommy Hilfiger","Tory Burch","True Religion","Twinset","Ugg","Under Armour","Uniqlo","Valentino","Valley Dreams","Van Cleef & Arpels","Vans","Versace","Victorinox","Vivienne Westwood","Vlone","Wandler","We11done","Woolrich","Wrangler","Y-3","Yeezy","Yohji Yamamoto","Zadig & Voltaire","Zara","Zegna"];
 const CATEGORIES = [
   ["camisetas","Camisetas"],["sudaderas","Sudaderas"],["polos","Polos"],["camisetas-futbol","Camisetas de fútbol"],
   ["abrigos","Abrigos"],["zapatos","Zapatos"],["vaqueros","Vaqueros"],["chanclas","Chanclas"],
   ["pantalones-cortos","Pantalones cortos"],["pantalones-largos","Pantalones largos"],
-  ["bolsos","Bolsos"],["carteras","Carteras"],["rinoneras","Riñoneras"]
+  ["bolsos","Bolsos"],["mochilas","Mochilas"],["gorros","Gorros"],["carteras","Carteras"],["rinoneras","Riñoneras"]
 ];
 const CATEGORY_LABELS = Object.fromEntries(CATEGORIES);
-const LEGACY_CATEGORIES = {vestidos:"camisetas",tops:"camisetas",conjuntos:"sudaderas",chaquetas:"abrigos",calzado:"zapatos",pantalones:"pantalones-largos",rinonera:"rinoneras",cartera:"carteras",bolso:"bolsos"};
+const LEGACY_CATEGORIES = {vestidos:"camisetas",tops:"camisetas",conjuntos:"sudaderas",chaquetas:"abrigos",calzado:"zapatos",pantalones:"pantalones-largos",rinonera:"rinoneras",cartera:"carteras",bolso:"bolsos",mochila:"mochilas",gorro:"gorros",gorra:"gorros"};
 const PRODUCT_CACHE_KEY = "gc_catalog_cache_v2";
 const AUTH_HINT_KEY = "gc_auth_hint_v1";
 const cachedProducts = readProductCache();
@@ -100,6 +100,23 @@ function formatPrice(value) {
   return new Intl.NumberFormat("es-ES", {style:"currency",currency:"EUR"}).format(numeric);
 }
 function activeProducts() { return state.products.filter(product => product.active !== false); }
+const NEW_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+function productTimestamp(product) {
+  const value = product?.createdAt;
+  if (value) {
+    if (typeof value.toDate === "function") { const date = value.toDate(); if (date && !Number.isNaN(date.getTime())) return date.getTime(); }
+    if (typeof value.seconds === "number") return value.seconds * 1000;
+    if (typeof value._seconds === "number") return value._seconds * 1000;
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string") { const date = new Date(value); if (!Number.isNaN(date.getTime())) return date.getTime(); }
+  }
+  const order = Number(product?.createdOrder);
+  return Number.isFinite(order) && order > 1e12 ? order : 0;
+}
+function isRecentProduct(product) {
+  const timestamp = productTimestamp(product);
+  return timestamp > 0 && Date.now() - timestamp < NEW_WINDOW_MS;
+}
 function productSearchText(product) { return norm([product.name, product.brand, CATEGORY_LABELS[product.category], product.description, product.sizes.join(" ")].join(" ")); }
 function productMatchesPrice(product) {
   if (state.priceMin === null && state.priceMax === null) return true;
@@ -153,6 +170,45 @@ function initChrome() {
   if (tools && !tools.querySelector(".search-shortcut")) tools.insertAdjacentHTML("afterbegin", `<a class="header-icon search-shortcut" href="catalogo.html?buscar=1" aria-label="Buscar artículos">${icon("search")}</a>`);
   document.querySelectorAll('.main-nav a[href="carrito.html"]').forEach(link => link.remove());
   const mainNav = document.querySelector("#mainNav");
+  mainNav?.querySelectorAll('a[href^="favoritos.html"]').forEach(link => link.remove());
+  if (mainNav) {
+    const accountNavLink = mainNav.querySelector(".mobile-account-nav");
+    const requestedCategory = page === "catalog" ? new URLSearchParams(location.search).get("categoria") : "";
+    if (!mainNav.querySelector('a[href="stock.html"]')) {
+      const stockLink = document.createElement("a");
+      stockLink.href = "stock.html"; stockLink.textContent = "En stock";
+      if (page === "stock") stockLink.classList.add("active");
+      const afterNovedades = mainNav.querySelector('a[href="novedades.html"]');
+      if (afterNovedades) afterNovedades.after(stockLink);
+      else mainNav.insertBefore(stockLink, accountNavLink);
+    }
+    if (page !== "catalog" && !document.querySelector('link[data-prefetch-catalog]')) {
+      const prefetch = document.createElement("link");
+      prefetch.rel = "prefetch"; prefetch.href = "catalogo.html"; prefetch.setAttribute("data-prefetch-catalog", "");
+      document.head.appendChild(prefetch);
+    }
+    [["camisetas","Camisetas"],["sudaderas","Sudaderas"],["zapatos","Zapatos"],["pantalones","Pantalones"]].forEach(([slug,label]) => {
+      const href = `catalogo.html?categoria=${slug}`;
+      if (mainNav.querySelector(`a[href="${href}"]`)) return;
+      const link = document.createElement("a");
+      link.href = href; link.textContent = label; link.className = "nav-shortcut";
+      const resolved = CATEGORY_LABELS[slug] ? slug : (LEGACY_CATEGORIES[slug] || slug);
+      if (requestedCategory === slug || (page === "catalog" && requestedCategory === resolved)) link.classList.add("active");
+      if (page === "catalog") link.addEventListener("click", event => {
+        event.preventDefault();
+        state.selectedCategory = resolved;
+        state.selectedBrands.clear(); state.priceMin = null; state.priceMax = null;
+        const search = document.querySelector("#catalogSearch"); if (search) search.value = "";
+        mainNav.querySelectorAll(".nav-shortcut").forEach(other => other.classList.toggle("active", other === link));
+        renderBrandOptions(); renderCatalog();
+        document.querySelector("#mainContent")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        mainNav.classList.remove("open");
+        document.body.classList.remove("nav-open");
+        document.querySelector(".nav-toggle")?.setAttribute("aria-expanded", "false");
+      });
+      mainNav.insertBefore(link, accountNavLink);
+    });
+  }
   if (mainNav && !mainNav.querySelector(".mobile-account-nav")) mainNav.insertAdjacentHTML("beforeend", '<a class="mobile-account-nav" data-account-link href="cuenta.html"><span data-account-label>Iniciar sesión</span></a>');
   const updateHeader = () => header?.classList.toggle("scrolled", window.scrollY > 28);
   updateHeader();
@@ -180,7 +236,51 @@ function initChrome() {
   enhanceFooter();
   initRevealMotion();
   initThemeToggle();
+  initHowCarousel();
+  initInstallPrompt();
   if (page === "catalog" && (new URLSearchParams(location.search).has("buscar") || location.hash === "#catalogSearch")) setTimeout(() => document.querySelector("#catalogSearch")?.focus(), 250);
+}
+
+function initHowCarousel() {
+  const carousel = document.querySelector("#howCarousel");
+  const track = carousel?.querySelector(".how-track");
+  if (!carousel || !track || track.dataset.ready) return;
+  track.dataset.ready = "1";
+  [...track.children].forEach(node => {
+    const clone = node.cloneNode(true);
+    clone.setAttribute("aria-hidden", "true");
+    clone.tabIndex = -1;
+    track.appendChild(clone);
+  });
+
+  let lit = "";
+  track.addEventListener("click", event => {
+    const step = event.target.closest(".how-step");
+    if (!step) return;
+    lit = lit === step.dataset.step ? "" : step.dataset.step;
+    track.querySelectorAll(".how-step").forEach(node => {
+      const on = lit && node.dataset.step === lit;
+      node.classList.toggle("lit", Boolean(on));
+      if (!node.hasAttribute("aria-hidden")) node.setAttribute("aria-pressed", String(Boolean(on)));
+    });
+  });
+
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let pauseUntil = 0;
+  ["pointerdown", "touchstart", "wheel", "keydown"].forEach(type =>
+    carousel.addEventListener(type, () => { pauseUntil = performance.now() + 2600; }, { passive: true }));
+
+  const half = () => track.scrollWidth / 2;
+  const frame = now => {
+    const span = half();
+    if (span > 0) {
+      const moving = !reduce && !document.hidden && !lit && now > pauseUntil && !(carousel.matches && carousel.matches(":hover"));
+      if (moving) carousel.scrollLeft += 0.6;
+      if (carousel.scrollLeft >= span) carousel.scrollLeft -= span;
+    }
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
 }
 
 function enhanceFooter() {
@@ -192,10 +292,16 @@ function enhanceFooter() {
 
 function initRevealMotion() {
   const elements = [...document.querySelectorAll("[data-reveal], .selection, .manifesto, .listing-heading")];
-  if (!elements.length || matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) { elements.forEach(node => node.classList.add("is-visible")); return; }
+  if (!elements.length) return;
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) { elements.forEach(node => node.classList.add("is-visible")); return; }
   elements.forEach(node => node.classList.add("reveal-section"));
-  const observer = new IntersectionObserver(entries => entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add("is-visible"); observer.unobserve(entry.target); } }), {threshold:.12});
+  const reveal = node => { node.classList.add("is-visible"); observer.unobserve(node); };
+  const observer = new IntersectionObserver(entries => entries.forEach(entry => { if (entry.isIntersecting) reveal(entry.target); }), {threshold:.08});
   elements.forEach(node => observer.observe(node));
+  const sweep = () => elements.forEach(node => { if (!node.classList.contains("is-visible") && node.getBoundingClientRect().top < (window.innerHeight || 0) * 0.92) reveal(node); });
+  requestAnimationFrame(sweep);
+  window.addEventListener("scroll", sweep, { passive: true });
+  setTimeout(() => elements.forEach(node => node.classList.add("is-visible")), 2500);
 }
 
 function productCard(product) {
@@ -204,7 +310,7 @@ function productCard(product) {
   return `<article class="product-card" data-product-id="${esc(product.id)}">
     <a class="product-card-link" href="${href}" aria-label="Ver ${esc(product.name)}"></a>
     <div class="product-media"><img src="${esc(product.image)}" alt="${esc(product.name)}" loading="lazy" decoding="async" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded');this.src='producto-1.jpg'">
-      ${product.badge ? `<span class="product-badge">${esc(product.badge)}</span>` : ""}
+      ${Number(product.stock) > 0 ? `<span class="product-badge in-stock">EN STOCK</span>` : product.badge ? `<span class="product-badge">${esc(product.badge)}</span>` : ""}
       <button class="quick-view-button" data-quick-view="${esc(product.id)}" type="button" aria-label="Vista rápida de ${esc(product.name)}">${icon("eye")}<span>Vista rápida</span></button>
       <button class="heart-button ${liked ? "liked" : ""}" data-favorite="${esc(product.id)}" type="button" aria-label="${liked ? "Quitar de favoritos" : "Guardar en favoritos"}">${icon(liked ? "heart-filled" : "heart")}</button>
     </div>
@@ -259,20 +365,70 @@ function renderPage() {
     const products = activeProducts().slice(0,3);
     featured.innerHTML = !state.productsReady ? productLoadingMarkup(3) : products.length ? products.map(productCard).join("") : '<div class="collection-empty"><p class="kicker blue">PRÓXIMAMENTE</p><h3>Estamos preparando la nueva selección.</h3><a href="novedades.html">Ver novedades →</a></div>';
   }
+  if (document.querySelector("#homeStats")) renderHomeExtras();
   if (page === "catalog") renderCatalog();
   if (page === "new") renderNewProducts();
+  if (page === "stock") renderStockPage();
   if (page === "favorites") renderFavorites();
   if (page === "cart") renderCart();
   if (page === "product") renderProductDetail();
   if (page === "account") renderAccount();
 }
 
+function animateCount(node, target) {
+  const final = Number(target) || 0;
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) { node.textContent = final.toLocaleString("es-ES"); return; }
+  const duration = 1100, start = performance.now();
+  const tick = now => {
+    const progress = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    node.textContent = Math.round(final * eased).toLocaleString("es-ES");
+    if (progress < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
+function renderHomeExtras() {
+  if (!state.productsReady) return;
+  const items = activeProducts();
+  document.querySelectorAll("#homeCategories [data-cat-count]").forEach(node => {
+    node.textContent = items.filter(product => product.category === node.dataset.catCount).length;
+  });
+  const stats = document.querySelector("#homeStats");
+  if (!stats || state.homeStatsStarted) return;
+  const run = () => {
+    if (state.homeStatsStarted) return;
+    state.homeStatsStarted = true;
+    const current = activeProducts();
+    const values = {
+      products: current.length,
+      brands: new Set(current.map(product => product.brand).filter(Boolean)).size,
+      fresh: current.filter(isRecentProduct).length
+    };
+    stats.querySelectorAll("[data-count-key]").forEach(node => animateCount(node, values[node.dataset.countKey]));
+  };
+  const inView = () => {
+    const rect = stats.getBoundingClientRect();
+    return rect.top < (window.innerHeight || 0) * 0.9 && rect.bottom > 0;
+  };
+  if (inView() || !("IntersectionObserver" in window)) { run(); return; }
+  const observer = new IntersectionObserver(entries => {
+    if (entries.some(entry => entry.isIntersecting)) { observer.disconnect(); run(); }
+  }, { threshold: 0, rootMargin: "0px 0px -10% 0px" });
+  observer.observe(stats);
+  const onScroll = () => { if (inView()) { window.removeEventListener("scroll", onScroll); observer.disconnect(); run(); } };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  setTimeout(run, 4000);
+}
+
 function initCatalog() {
   const search = document.querySelector("#catalogSearch");
   if (!search) return;
   const params = new URLSearchParams(location.search);
-  const requestedCategory = params.get("categoria") || "all";
-  state.selectedCategory = ["all", ...CATEGORIES.map(item => item[0])].includes(requestedCategory) ? requestedCategory : "all";
+  const categorySlugs = ["all", ...CATEGORIES.map(item => item[0])];
+  let requestedCategory = params.get("categoria") || "all";
+  if (!categorySlugs.includes(requestedCategory)) requestedCategory = LEGACY_CATEGORIES[requestedCategory] || "all";
+  state.selectedCategory = categorySlugs.includes(requestedCategory) ? requestedCategory : "all";
   (params.get("marcas") || "").split("|").filter(brand => BRANDS.includes(brand)).forEach(brand => state.selectedBrands.add(brand));
   state.priceMin = priceBoundary(params.get("precioMin"));
   state.priceMax = priceBoundary(params.get("precioMax"));
@@ -331,6 +487,23 @@ function renderBrandOptions() {
   renderFilterMetadata(norm(document.querySelector("#catalogSearch")?.value));
 }
 
+function detectCategoryInSearch(rawTerm) {
+  const term = norm(rawTerm).trim().replace(/\s+/g, " ");
+  if (term.length < 3) return null;
+  const candidates = [];
+  CATEGORIES.forEach(([slug, label]) => {
+    const base = norm(label);
+    const forms = new Set([base, base.replace(/-/g, " ")]);
+    if (base.endsWith("s")) forms.add(base.slice(0, -1));
+    forms.forEach(form => { if (form) candidates.push([slug, form]); });
+  });
+  Object.entries(LEGACY_CATEGORIES).forEach(([alias, slug]) => candidates.push([slug, norm(alias)]));
+  for (const [slug, form] of candidates) if (term === form) return { slug, rest: "" };
+  for (const [slug, form] of candidates) if (term.startsWith(form + " ")) return { slug, rest: term.slice(form.length).trim() };
+  for (const [slug, form] of candidates) if (form.startsWith(term) && term.length >= 4) return { slug, rest: "" };
+  return null;
+}
+
 function renderCatalog() {
   const grid = document.querySelector("#catalogGrid"); if (!grid) return;
   if (!state.productsReady) {
@@ -341,12 +514,19 @@ function renderCatalog() {
     return;
   }
   grid.classList.remove("is-loading");
-  document.querySelectorAll("[data-category]").forEach(button => button.classList.toggle("active", button.dataset.category === state.selectedCategory));
   const search = document.querySelector("#catalogSearch");
-  const term = norm(search?.value);
+  const rawTerm = search?.value || "";
+  let term = norm(rawTerm);
+  let effectiveCategory = state.selectedCategory;
+  let searchCategory = "";
+  if (state.selectedCategory === "all") {
+    const hit = detectCategoryInSearch(rawTerm);
+    if (hit) { effectiveCategory = hit.slug; searchCategory = hit.slug; term = norm(hit.rest); }
+  }
+  document.querySelectorAll("[data-category]").forEach(button => button.classList.toggle("active", button.dataset.category === effectiveCategory));
   const sort = document.querySelector("#catalogSort")?.value || "newest";
   let products = activeProducts().filter(product => {
-    return (!term || productSearchText(product).includes(term)) && (state.selectedCategory === "all" || product.category === state.selectedCategory) && (!state.selectedBrands.size || state.selectedBrands.has(product.brand)) && productMatchesPrice(product);
+    return (!term || productSearchText(product).includes(term)) && (effectiveCategory === "all" || product.category === effectiveCategory) && (!state.selectedBrands.size || state.selectedBrands.has(product.brand)) && productMatchesPrice(product);
   });
   if (sort === "name") products.sort((a,b) => a.name.localeCompare(b.name,"es"));
   else if (sort.startsWith("price")) products.sort((a,b) => {
@@ -363,6 +543,10 @@ function renderCatalog() {
   const liveResult = document.querySelector("#filterLiveResult"); if (liveResult) liveResult.textContent = products.length;
   const applyResult = document.querySelector("#filterApplyCount"); if (applyResult) applyResult.textContent = products.length;
   renderFilterMetadata(term);
+  const resultNote = document.querySelector(".catalog-result-line span");
+  if (resultNote) resultNote.textContent = searchCategory ? `Categoría «${CATEGORY_LABELS[searchCategory]}» detectada en tu búsqueda` : "Selección actualizada al instante";
+  const categoryStatus = document.querySelector("#categoryFilterStatus");
+  if (categoryStatus && searchCategory) categoryStatus.textContent = CATEGORY_LABELS[searchCategory];
   renderPriceControls();
   renderActiveChips(term);
 }
@@ -450,11 +634,80 @@ function renderNewProducts() {
   }
   grid.classList.remove("is-loading");
   const term = norm(document.querySelector("#newSearch")?.value);
-  const products = activeProducts().filter(product => (!term || norm([product.name,product.brand,product.description].join(" ")).includes(term)) && (state.newCategory === "all" || product.category === state.newCategory)).sort((a,b) => Number(b.createdOrder || 0)-Number(a.createdOrder || 0));
+  const recent = activeProducts().filter(isRecentProduct).sort((a,b) => productTimestamp(b) - productTimestamp(a));
+  const products = recent.filter(product => (!term || norm([product.name,product.brand,product.description].join(" ")).includes(term)) && (state.newCategory === "all" || product.category === state.newCategory));
   document.querySelectorAll("[data-new-category]").forEach(button => button.classList.toggle("active", button.dataset.newCategory === state.newCategory));
   grid.innerHTML = products.map(productCard).join(""); grid.classList.toggle("hidden", !products.length);
-  document.querySelector("#newEmpty")?.classList.toggle("hidden", Boolean(products.length));
+  const empty = document.querySelector("#newEmpty");
+  if (empty) {
+    empty.classList.toggle("hidden", Boolean(products.length));
+    const nothingThisWeek = !recent.length;
+    const heading = empty.querySelector("h2"), copy = empty.querySelector("p");
+    if (heading) heading.textContent = nothingThisWeek ? "Esta semana no hay novedades" : "No hay novedades con ese filtro";
+    if (copy) copy.textContent = nothingThisWeek ? "Aquí solo aparecen las piezas subidas en los últimos 7 días. Vuelve pronto." : "Prueba con otra búsqueda o vuelve a mostrarlo todo.";
+  }
   const count = document.querySelector("#newResultCount"); if (count) count.textContent = products.length;
+}
+
+function inStockProducts() { return activeProducts().filter(product => Number(product.stock) > 0); }
+function initStockPage() { document.querySelector("#stockSearch")?.addEventListener("input", renderStockPage); }
+function renderStockPage() {
+  const grid = document.querySelector("#stockGrid"); if (!grid) return;
+  if (!state.productsReady) {
+    grid.innerHTML = productLoadingMarkup(8); grid.classList.remove("hidden"); grid.classList.add("is-loading");
+    document.querySelector("#stockEmpty")?.classList.add("hidden");
+    const count = document.querySelector("#stockResultCount"); if (count) count.textContent = "—";
+    return;
+  }
+  grid.classList.remove("is-loading");
+  const term = norm(document.querySelector("#stockSearch")?.value);
+  const available = inStockProducts().sort((a,b) => productTimestamp(b) - productTimestamp(a));
+  const products = available.filter(product => !term || productSearchText(product).includes(term));
+  grid.innerHTML = products.map(productCard).join(""); grid.classList.toggle("hidden", !products.length);
+  const empty = document.querySelector("#stockEmpty");
+  if (empty) {
+    empty.classList.toggle("hidden", Boolean(products.length));
+    const noStock = !available.length;
+    const heading = empty.querySelector("h2"), copy = empty.querySelector("p");
+    if (heading) heading.textContent = noStock ? "Ahora mismo no hay piezas en stock" : "No hay resultados con esa búsqueda";
+    if (copy) copy.textContent = noStock ? "Todo el catálogo funciona por encargo. Prepara tu carrito y te pasamos una oferta." : "Prueba con otro nombre o marca.";
+  }
+  const count = document.querySelector("#stockResultCount"); if (count) count.textContent = products.length;
+}
+
+function initInstallPrompt() {
+  const section = document.querySelector("#homeInstall");
+  if (!section) return;
+  const installed = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  if (installed) { section.classList.add("hidden"); return; }
+  const button = document.querySelector("#installAppBtn");
+  let deferredPrompt = null;
+  window.addEventListener("beforeinstallprompt", event => {
+    event.preventDefault();
+    deferredPrompt = event;
+    button?.classList.remove("hidden");
+  });
+  button?.addEventListener("click", async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice.catch(() => {});
+    deferredPrompt = null;
+    button.classList.add("hidden");
+  });
+  window.addEventListener("appinstalled", () => section.classList.add("hidden"));
+}
+
+function initJerseyExamples() {
+  const grid = document.querySelector("#jerseyExamplesGrid");
+  const section = document.querySelector("#jerseyExamplesSection");
+  if (!grid || !section) return;
+  onSnapshot(collection(db, "jerseyExamples"), snapshot => {
+    const examples = snapshot.docs.map(item => ({ id: item.id, ...item.data() }))
+      .sort((a, b) => Number(b.createdAt?.seconds || 0) - Number(a.createdAt?.seconds || 0));
+    if (!examples.length) { section.classList.add("hidden"); return; }
+    section.classList.remove("hidden");
+    grid.innerHTML = examples.map(example => `<figure class="jersey-example"><img src="${esc(example.image || "producto-1.jpg")}" alt="${esc(example.name || "Ejemplo de camiseta de fútbol")}" loading="lazy" decoding="async" onerror="this.src='producto-1.jpg'">${example.name ? `<figcaption>${esc(example.name)}</figcaption>` : ""}</figure>`).join("");
+  }, error => { console.error(error); section.classList.add("hidden"); });
 }
 
 function initFavorites() { document.querySelector("#favoritesSearch")?.addEventListener("input", renderFavorites); }
@@ -481,10 +734,10 @@ function renderProductDetail() {
   document.title = `${product.name} | GinesCloset`;
   const images = productImages(product), liked = state.favorites.has(product.id);
   root.innerHTML = `<article class="product-detail"><div class="product-gallery"><div class="product-thumbs">${images.map((image,index) => `<button class="product-thumb ${index===0?"active":""}" type="button" data-detail-index="${index}" aria-label="Mostrar imagen ${index+1}"><img src="${esc(image)}" alt="Vista ${index+1} de ${esc(product.name)}" onerror="this.src='producto-1.jpg'"></button>`).join("")}</div><div class="product-main-image" id="detailImageStage"><img id="detailMainImage" src="${esc(images[0])}" alt="${esc(product.name)}" onerror="this.src='producto-1.jpg'"><button class="gallery-zoom" data-product-zoom type="button" aria-label="Ampliar fotografía">${icon("zoom")}</button>${images.length>1?`<button class="gallery-arrow previous" data-gallery-previous type="button" aria-label="Fotografía anterior">←</button><button class="gallery-arrow next" data-gallery-next type="button" aria-label="Fotografía siguiente">→</button>`:""}<span class="gallery-count" id="galleryCount">1 / ${images.length}</span></div></div>
-    <div class="product-detail-info"><p class="product-breadcrumb"><a href="catalogo.html">Catálogo</a> · ${esc(CATEGORY_LABELS[product.category] || "Selección")}</p><p class="kicker blue">${esc(product.brand || "GINESCLOSET")}</p><h1>${esc(product.name)}</h1><div class="detail-price-row"><strong class="detail-price">${esc(formatPrice(product.price))}</strong>${product.unique?'<span>PIEZA ÚNICA</span>':""}</div><p class="detail-condition">${esc(product.condition || "Muy buen estado")}</p><p class="detail-description">${esc(product.description || "Una pieza seleccionada por GinesCloset.")}</p>
+    <div class="product-detail-info"><p class="product-breadcrumb"><a href="catalogo.html">Catálogo</a> · ${esc(CATEGORY_LABELS[product.category] || "Selección")}</p><p class="kicker blue">${esc(product.brand || "GINESCLOSET")}</p><h1>${esc(product.name)}</h1><div class="detail-price-row"><strong class="detail-price">${esc(formatPrice(product.price))}</strong>${Number(product.stock) > 0 ? '<span class="detail-stock-chip">EN STOCK</span>' : ""}${product.unique?'<span>PIEZA ÚNICA</span>':""}</div><p class="detail-condition">${esc(product.condition || "Muy buen estado")}</p><p class="detail-description">${esc(product.description || "Una pieza seleccionada por GinesCloset.")}</p>
       <label class="size-select-field"><span>Seleccionar talla</span><select id="detailSize"><option value="">Elige una talla</option>${product.sizes.map(size => `<option>${esc(size)}</option>`).join("")}</select></label>
       ${productDetailsMarkup(product)}
-      <div class="offer-explainer">${icon("whatsapp")}<div><b>Recibe una oferta por WhatsApp</b><span>Añade la pieza al carrito y envía tu solicitud. No se realiza ningún pago en la web.</span></div></div>
+      <div class="offer-explainer${Number(product.stock) > 0 ? " in-stock" : ""}">${icon("whatsapp")}<div><b>${Number(product.stock) > 0 ? "Disponible ahora · entrega inmediata" : "Recibe una oferta por WhatsApp"}</b><span>${Number(product.stock) > 0 ? "Esta pieza ya está en stock. Añádela al carrito y envía tu solicitud: no va por encargo." : "Añade la pieza al carrito y envía tu solicitud. No se realiza ningún pago en la web."}</span></div></div>
       <div class="detail-actions"><button class="button button-primary" data-cart="${esc(product.id)}" data-cart-detail type="button">${state.cart.has(product.id)?"✓ Artículo en el carrito":"＋ Añadir al carrito"}</button><button class="detail-heart ${liked?"liked":""}" data-favorite="${esc(product.id)}" type="button">${icon(liked?"heart-filled":"heart")} ${liked?"Guardado en favoritos":"Guardar en favoritos"}</button></div></div></article>
       <div class="mobile-add-bar"><div><small>${esc(product.brand || "GINESCLOSET")}</small><strong>${esc(formatPrice(product.price))}</strong></div><button class="button button-primary" data-cart="${esc(product.id)}" data-cart-detail type="button">${state.cart.has(product.id)?"EN EL CARRITO":"AÑADIR"}</button></div>`;
   let currentImage = 0;
@@ -708,7 +961,7 @@ async function resetPassword(event) {
   try{await sendPasswordResetEmail(auth,email);showToast("Te hemos enviado el correo para recuperar tu contraseña.","success");}catch(problem){error.textContent=friendlyError(problem);error.classList.remove("hidden");}
 }
 async function logoutToStore(){try{await signOut(auth);sessionStorage.removeItem("gc_pending_favorite");sessionStorage.removeItem("gc_pending_cart");writeAuthHint({signedIn:false,role:"customer",label:"Iniciar sesión"});location.replace("index.html?sesion=cerrada");}catch{showToast("No se ha podido cerrar la sesión.","error");}}
-function safeReturnPage(){const value=new URLSearchParams(location.search).get("return")||"";return /^(?:index|catalogo|novedades|favoritos|carrito|cuenta|articulo)\.html(?:[?#].*)?$/i.test(value)?value:"";}
+function safeReturnPage(){const value=new URLSearchParams(location.search).get("return")||"";return /^(?:index|catalogo|novedades|stock|favoritos|carrito|cuenta|articulo)\.html(?:[?#].*)?$/i.test(value)?value:"";}
 function friendlyError(error){const messages={"auth/email-already-in-use":"Ya existe una cuenta con este correo.","auth/invalid-credential":"El correo o la contraseña no son correctos.","auth/weak-password":"La contraseña debe tener al menos 6 caracteres.","auth/invalid-email":"Introduce un correo válido.","auth/popup-closed-by-user":"Se ha cerrado la ventana de Google.","auth/popup-blocked":"El navegador ha bloqueado la ventana de Google. Permite las ventanas emergentes.","auth/network-request-failed":"No hay conexión. Comprueba Internet e inténtalo de nuevo.","auth/too-many-requests":"Demasiados intentos. Espera unos minutos.","auth/unauthorized-domain":"Falta autorizar este dominio en Firebase Authentication.","auth/operation-not-allowed":"Este método de acceso no está habilitado en Firebase."};return messages[error?.code] || "No se ha podido completar la operación. Inténtalo de nuevo.";}
 function showToast(message,type="success"){let toast=document.querySelector(".site-toast");if(!toast){toast=document.createElement("div");toast.className="site-toast";document.body.append(toast);}toast.textContent=message;toast.dataset.type=type;toast.classList.add("show");clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>toast.classList.remove("show"),3200);}
 
@@ -739,5 +992,11 @@ onAuthStateChanged(auth, async user => {
 initChrome();
 if(page==="catalog")initCatalog();
 if(page==="new")initNew();
+if(page==="stock")initStockPage();
 if(page==="favorites")initFavorites();
+if(page==="futbol")initJerseyExamples();
 renderPage();
+
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+}
