@@ -215,11 +215,17 @@ function initChrome() {
   window.addEventListener("scroll", updateHeader, {passive:true});
   const toggle = document.querySelector(".nav-toggle");
   const nav = document.querySelector("#mainNav");
-  toggle?.addEventListener("click", () => {
-    const open = nav.classList.toggle("open");
-    toggle.setAttribute("aria-expanded", String(open));
+  const setNav = open => {
+    nav?.classList.toggle("open", open);
+    toggle?.setAttribute("aria-expanded", String(open));
     document.body.classList.toggle("nav-open", open);
+  };
+  toggle?.addEventListener("click", () => setNav(!nav.classList.contains("open")));
+  nav?.addEventListener("click", event => { if (event.target.closest("a")) setNav(false); });
+  document.addEventListener("click", event => {
+    if (nav?.classList.contains("open") && !event.target.closest("#mainNav") && !event.target.closest(".nav-toggle")) setNav(false);
   });
+  window.addEventListener("keydown", event => { if (event.key === "Escape" && nav?.classList.contains("open")) setNav(false); });
   document.addEventListener("click", event => {
     const favoriteButton = event.target.closest("[data-favorite]");
     if (favoriteButton) { event.preventDefault(); event.stopPropagation(); toggleFavorite(favoriteButton.dataset.favorite); return; }

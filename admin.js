@@ -27,7 +27,7 @@ const PRODUCT_CACHE_KEY = "gc_catalog_cache_v2";
 const AUTH_HINT_KEY = "gc_auth_hint_v1";
 const cachedProducts = readProductCache();
 
-const state = {user:null,profile:{},role:"customer",products:cachedProducts||[],productSignature:cachedProducts?productSignature(cachedProducts):"",productsReady:cachedProducts!==null,requests:[],ready:false,view:"catalog",editId:"",search:"",category:"all",status:"all",requestSearch:"",requestStatus:"all",media:[],removedPaths:[],dirty:false,autosaveTimer:null,stopProducts:null,stopRequests:null,jerseyExamples:[],jerseyExamplesReady:false,stopJerseyExamples:null,jerseyExampleBusy:false};
+const state = {user:null,profile:{},role:"customer",products:cachedProducts||[],productSignature:cachedProducts?productSignature(cachedProducts):"",productsReady:cachedProducts!==null,requests:[],ready:false,view:"catalog",editId:"",search:"",category:"all",status:"all",requestSearch:"",requestStatus:"all",media:[],removedPaths:[],dirty:false,autosaveTimer:null,stopProducts:null,stopRequests:null,jerseyExamples:[],jerseyExamplesReady:false,stopJerseyExamples:null,jerseyExampleBusy:false,editorPrefill:null};
 const root = document.querySelector("#adminMain");
 const esc = (value="") => String(value).replace(/[&<>'"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[char]);
 const norm = value => String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
@@ -76,10 +76,18 @@ function bindCatalog(){
 function updatePendingRequestCount(){const pending=state.requests.filter(request=>request.status==="pending").length,node=document.querySelector("#pendingRequestCount");if(node){node.textContent=pending;node.classList.toggle("hidden",!pending);}}
 function renderStock(){
   const products=state.products;
-  root.innerHTML=`<div class="admin-main-shell"><header class="admin-page-head"><div><p class="kicker">GESTIÓN DE STOCK</p><h1>Stock por artículo</h1><span>${products.length} artículo${products.length===1?"":"s"} en el catálogo</span></div></header>
+  const inStock=products.filter(item=>Number(item.stock)>0);
+  const onDemand=products.filter(item=>!(Number(item.stock)>0));
+  const addInStock=()=>{state.editorPrefill={stock:1,active:true};goTo("editor");};
+  root.innerHTML=`<div class="admin-main-shell"><header class="admin-page-head"><div><p class="kicker">EXISTENCIAS</p><h1>Stock disponible</h1><span>${inStock.length} pieza${inStock.length===1?"":"s"} en stock ahora mismo</span></div><div class="admin-head-actions"><a class="admin-secondary-link" href="stock.html" target="_blank" rel="noopener">Ver «En stock» ↗</a><button class="button button-primary" id="newInStock" type="button">＋ Nueva pieza en stock</button></div></header>
     <div class="admin-toolbar"><label class="admin-search"><span>⌕</span><input id="stockSearch" type="search" placeholder="Buscar artículo o marca"></label></div>
-    ${products.length?`<div class="admin-stock-list" id="stockList">${products.map(stockRow).join("")}</div>`:`<div class="admin-empty"><span>◇</span><h2>No hay artículos</h2><p>Añade artículos al catálogo para gestionar su stock.</p></div>`}</div>`;
-  root.querySelector("#stockSearch")?.addEventListener("input",event=>{const term=norm(event.target.value);const items=root.querySelectorAll(".admin-stock-row");items.forEach(row=>{const text=norm(row.dataset.stockSearch||"");row.style.display=text.includes(term)?"":"none";});});
+    ${products.length?`
+      <section class="stock-block"><h2 class="stock-block-title">En stock · entrega inmediata (${inStock.length})</h2>${inStock.length?`<div class="admin-stock-list">${inStock.map(stockRow).join("")}</div>`:`<p class="stock-block-empty">Todavía no hay piezas en stock. Usa “Nueva pieza en stock” o pon una cantidad en la lista de abajo.</p>`}</section>
+      <section class="stock-block"><h2 class="stock-block-title">Por encargo (${onDemand.length})</h2><div class="admin-stock-list">${onDemand.map(stockRow).join("")}</div></section>
+    `:`<div class="admin-empty"><span>◇</span><h2>No hay artículos</h2><p>Añade tu primera pieza en stock.</p><button class="button button-primary" id="emptyNewInStock" type="button">＋ Nueva pieza en stock</button></div>`}</div>`;
+  root.querySelector("#newInStock")?.addEventListener("click",addInStock);
+  root.querySelector("#emptyNewInStock")?.addEventListener("click",addInStock);
+  root.querySelector("#stockSearch")?.addEventListener("input",event=>{const term=norm(event.target.value);root.querySelectorAll(".admin-stock-row").forEach(row=>{row.style.display=norm(row.dataset.stockSearch||"").includes(term)?"":"none";});});
   root.querySelectorAll("[data-stock-input]").forEach(input=>{input.addEventListener("change",()=>saveStock(input.dataset.stockInput,Number(input.value)||0));});
 }
 function stockRow(product){return `<article class="admin-stock-row" data-stock-search="${esc((product.name+" "+product.brand+" "+(CATEGORY_LABELS[product.category]||"")).toLowerCase())}"><img src="${esc(product.image)}" alt="${esc(product.name)}" onerror="this.src='producto-1.jpg'"><div><h3>${esc(product.name)}</h3><p>${esc(product.brand||"GinesCloset")} · ${esc(CATEGORY_LABELS[product.category]||product.category)}</p></div><label class="stock-field"><span>Stock</span><input type="number" min="0" value="${product.stock||0}" data-stock-input="${esc(product.id)}"></label></article>`;}
@@ -193,8 +201,11 @@ const QUICK_SIZES = {
 function renderEditor(){
   const source=editorProduct();let product=source?{...source}:emptyEditorModel();
   if(!source){const saved=localStorage.getItem("gc_admin_draft");if(saved){try{product={...product,...JSON.parse(saved),id:""};}catch{}}}
+  if(!source&&state.editorPrefill){product={...product,...state.editorPrefill};}
+  const prefillInStock=!source&&state.editorPrefill?.stock>0;
+  state.editorPrefill=null;
   prepareMedia(source);state.editorDraft=product;
-  root.innerHTML=`<div class="admin-main-shell"><header class="admin-page-head"><div><p class="kicker">${source?"EDITAR ARTÍCULO":"NUEVO ARTÍCULO"}</p><h1>${source?esc(source.name):"Añade una pieza"}</h1><span>${source?"Actualiza la información y guarda los cambios.":"Completa la ficha y decide cuándo publicarla."}</span></div><div class="admin-head-actions"><button class="admin-secondary-link" id="backCatalog" type="button">← Mis artículos</button></div></header>
+  root.innerHTML=`<div class="admin-main-shell"><header class="admin-page-head"><div><p class="kicker">${source?"EDITAR ARTÍCULO":prefillInStock?"NUEVO ARTÍCULO EN STOCK":"NUEVO ARTÍCULO"}</p><h1>${source?esc(source.name):prefillInStock?"Añade una pieza en stock":"Añade una pieza"}</h1><span>${source?"Actualiza la información y guarda los cambios.":prefillInStock?"Ya tienes esta pieza físicamente. Al publicarla aparecerá en “En stock” con entrega inmediata.":"Completa la ficha y decide cuándo publicarla."}</span></div><div class="admin-head-actions"><button class="admin-secondary-link" id="backCatalog" type="button">← Mis artículos</button></div></header>
     <form id="productForm" novalidate><div class="editor-layout"><div class="editor-form">
       <section class="editor-card"><div class="editor-card-head"><h2>Información básica</h2><span class="autosave-state" id="autosaveState">Borrador local preparado</span></div>
         <div class="admin-field"><span>Nombre del artículo</span><input name="name" required maxlength="80" value="${esc(product.name)}" placeholder="Ej. Sudadera Logo bordado"></div>

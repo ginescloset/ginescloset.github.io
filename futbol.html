@@ -13,8 +13,8 @@
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://firestore.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap">
-  <link rel="stylesheet" href="styles.css?v=40.0">
-  <script type="module" src="app.js?v=40.0"></script>
+  <link rel="stylesheet" href="styles.css?v=49.0">
+  <script type="module" src="app.js?v=49.0"></script>
 </head>
 <body data-page="futbol">
   <a class="skip-link" href="#mainContent">Saltar al contenido</a>
@@ -85,6 +85,35 @@
             <div class="futbol-card-head">
               <span class="step-number">02</span>
               <div>
+                <h2>Tipo de prenda</h2>
+                <p>Elige el modelo y verás el precio al momento</p>
+              </div>
+            </div>
+            <div class="jersey-type-grid" id="jerseyTypeGrid" role="radiogroup" aria-label="Tipo de prenda">
+              <button type="button" class="jersey-type active" data-type="fan"><b>Camiseta versión fan</b><small>Tallas S–2XL</small><i>20 €</i></button>
+              <button type="button" class="jersey-type" data-type="jugador"><b>Camiseta versión jugador</b><small>Tallas S–2XL</small><i>22 €</i></button>
+              <button type="button" class="jersey-type" data-type="manga-larga"><b>Camiseta manga larga</b><small>&nbsp;</small><i>23 €</i></button>
+              <button type="button" class="jersey-type" data-type="retro"><b>Camiseta retro</b><small>&nbsp;</small><i>22 €</i></button>
+              <button type="button" class="jersey-type" data-type="pantalon"><b>Pantalones cortos</b><small>&nbsp;</small><i>18 €</i></button>
+              <button type="button" class="jersey-type" data-type="conjunto-adulto"><b>Conjunto adulto</b><small>Camiseta + pantalón</small><i>28 €</i></button>
+              <button type="button" class="jersey-type" data-type="conjunto-infantil"><b>Conjunto infantil</b><small>Tallas de niño</small><i>22 €</i></button>
+              <button type="button" class="jersey-type" data-type="conjunto-infantil-retro"><b>Conjunto infantil retro</b><small>Tallas de niño</small><i>24 €</i></button>
+            </div>
+            <div class="jersey-extras">
+              <p class="jersey-extras-title">💶 Extras opcionales</p>
+              <ul class="jersey-extras-list">
+                <li><span>Número + nombre</span><b>+2&nbsp;€</b></li>
+                <li><span>Parche</span><b>+1&nbsp;€</b></li>
+                <li><span>Talla especial <em>3XL · 4XL · 5XL</em></span><b>+1&nbsp;€</b></li>
+              </ul>
+              <p class="jersey-extras-note">Precio orientativo. El total exacto te lo confirmamos por WhatsApp según el equipo y la disponibilidad.</p>
+            </div>
+          </section>
+
+          <section class="futbol-card">
+            <div class="futbol-card-head">
+              <span class="step-number">03</span>
+              <div>
                 <h2>Personaliza</h2>
                 <p>Añade nombre, número y detalles</p>
               </div>
@@ -137,7 +166,7 @@
 
           <section class="futbol-card">
             <div class="futbol-card-head">
-              <span class="step-number">03</span>
+              <span class="step-number">04</span>
               <div>
                 <h2>Parches</h2>
                 <p>¿Qué parches quieres añadir?</p>
@@ -222,7 +251,7 @@
 
           <section class="futbol-card">
             <div class="futbol-card-head">
-              <span class="step-number">04</span>
+              <span class="step-number">05</span>
               <div>
                 <h2>Enviar solicitud</h2>
                 <p>Te prepararemos una oferta por WhatsApp</p>
@@ -254,6 +283,11 @@
               <div class="preview-size" id="previewSize">Talla: M</div>
               <div class="preview-patches" id="previewPatches">Sin parches</div>
             </div>
+            <div class="preview-price" id="previewPrice">
+              <div class="preview-price-total"><span>Precio estimado</span><b id="previewPriceTotal">20 €</b></div>
+              <ul class="preview-price-lines" id="previewPriceLines"></ul>
+              <small>Orientativo. Total exacto por WhatsApp.</small>
+            </div>
           </div>
         </aside>
       </div>
@@ -280,7 +314,33 @@
         jerseyName: "",
         size: "M",
         patches: [],
-        customPatch: ""
+        customPatch: "",
+        type: "fan"
+      };
+
+      const JERSEY_TYPES = {
+        "fan": { label: "Camiseta versión fan", price: 20 },
+        "jugador": { label: "Camiseta versión jugador", price: 22 },
+        "manga-larga": { label: "Camiseta manga larga", price: 23 },
+        "retro": { label: "Camiseta retro", price: 22 },
+        "pantalon": { label: "Pantalones cortos", price: 18 },
+        "conjunto-adulto": { label: "Conjunto adulto", price: 28 },
+        "conjunto-infantil": { label: "Conjunto infantil", price: 22 },
+        "conjunto-infantil-retro": { label: "Conjunto infantil retro", price: 24 }
+      };
+      const SPECIAL_SIZES = new Set(["3XL", "4XL", "5XL"]);
+      const ADDON_NAME_NUMBER = 2, ADDON_PATCH = 1, ADDON_SPECIAL_SIZE = 1;
+
+      const estimate = () => {
+        const type = JERSEY_TYPES[state.type];
+        if (!type) return null;
+        const lines = [{ label: type.label, amount: type.price }];
+        let total = type.price;
+        if (state.jerseyName || state.jerseyNumber) { total += ADDON_NAME_NUMBER; lines.push({ label: "Número + nombre", amount: ADDON_NAME_NUMBER }); }
+        const patchCount = state.patches.length + (state.customPatch && state.customPatch.trim() ? 1 : 0);
+        if (patchCount) { total += patchCount * ADDON_PATCH; lines.push({ label: `Parche${patchCount > 1 ? " ×" + patchCount : ""}`, amount: patchCount * ADDON_PATCH }); }
+        if (SPECIAL_SIZES.has(state.size)) { total += ADDON_SPECIAL_SIZE; lines.push({ label: "Talla especial", amount: ADDON_SPECIAL_SIZE }); }
+        return { total, lines, typeLabel: type.label };
       };
 
       // Cargar camisetas de fútbol del catálogo
@@ -393,6 +453,19 @@
       if (playerNumber) playerNumber.addEventListener("input", (e) => { state.jerseyNumber = e.target.value; updatePreview(); });
       if (customPatch) customPatch.addEventListener("input", (e) => { state.customPatch = e.target.value; updatePreview(); });
 
+      // Tipo de prenda
+      document.querySelectorAll(".jersey-type").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".jersey-type").forEach(b => { b.classList.remove("active"); b.setAttribute("aria-checked", "false"); });
+          btn.classList.add("active");
+          btn.setAttribute("aria-checked", "true");
+          state.type = btn.dataset.type;
+          updatePreview();
+        });
+        btn.setAttribute("role", "radio");
+        btn.setAttribute("aria-checked", btn.classList.contains("active") ? "true" : "false");
+      });
+
       // Tallas
       document.querySelectorAll(".size-btn").forEach(btn => {
         btn.addEventListener("click", () => {
@@ -436,20 +509,31 @@
         const allPatches = [...state.patches.map(p => patchLabels[p] || p), state.customPatch].filter(Boolean);
         previewPatches.textContent = allPatches.length ? allPatches.join(", ") : "Sin parches";
 
+        // Precio estimado
+        const quote = estimate();
+        const priceTotal = document.getElementById("previewPriceTotal");
+        const priceLines = document.getElementById("previewPriceLines");
+        if (quote) {
+          priceTotal.textContent = `${quote.total} €`;
+          priceLines.innerHTML = quote.lines.map((l, i) => `<li><span>${l.label}</span><span>${i === 0 ? "" : "+"}${l.amount} €</span></li>`).join("");
+        }
+
         // Resumen
-        const hasData = state.jerseyImage || state.jerseyName || state.jerseyNumber;
+        const hasData = state.jerseyImage || state.jerseyName || state.jerseyNumber || state.type;
         if (hasData) {
           let summary = "<ul>";
-          if (state.jerseyImage) summary += "<li>✓ Camiseta seleccionada</li>";
+          summary += `<li>Prenda: <b>${quote ? quote.typeLabel : "—"}</b></li>`;
+          if (state.jerseyImage) summary += "<li>✓ Camiseta de referencia adjunta</li>";
           if (state.jerseyName) summary += `<li>Nombre: <b>${state.jerseyName}</b></li>`;
           if (state.jerseyNumber) summary += `<li>Número: <b>${state.jerseyNumber}</b></li>`;
           summary += `<li>Talla: <b>${state.size}</b></li>`;
           if (allPatches.length) summary += `<li>Parches: <b>${allPatches.join(", ")}</b></li>`;
+          if (quote) summary += `<li>Precio estimado: <b>${quote.total} €</b></li>`;
           summary += "</ul>";
           sendSummary.innerHTML = summary;
           sendBtn.disabled = false;
         } else {
-          sendSummary.innerHTML = "<p>Completa los campos anteriores para ver el resumen de tu personalización.</p>";
+          sendSummary.innerHTML = "<p>Elige el tipo de prenda para empezar.</p>";
           sendBtn.disabled = true;
         }
       };
@@ -461,12 +545,19 @@
           const patchLabels = { liga: "Liga", champions: "Champions", europa: "Europa League", conference: "Conference League", copa: "Copa", mundial: "Mundial", escudo: "Escudo", marca: "Marca" };
           const allPatches = [...state.patches.map(p => patchLabels[p] || p), state.customPatch].filter(Boolean);
           
+          const quote = estimate();
           let message = `⚽ *SOLICITUD DE CAMISETA PERSONALIZADA*\n\n`;
+          if (quote) message += `👕 Prenda: ${quote.typeLabel}\n`;
           if (state.jerseyName) message += `👤 Nombre: ${state.jerseyName}\n`;
           if (state.jerseyNumber) message += `🔢 Número: ${state.jerseyNumber}\n`;
           message += `📏 Talla: ${state.size}\n`;
           if (allPatches.length) message += `🏷️ Parches: ${allPatches.join(", ")}\n`;
-          message += `\n📸 Adjunto foto de referencia de la camiseta.`;
+          if (quote) {
+            message += `\n💶 *Precio estimado: ${quote.total} €*\n`;
+            message += quote.lines.map((l, i) => `   ${i === 0 ? "" : "+ "}${l.label}: ${l.amount} €`).join("\n");
+            message += `\n(orientativo, a confirmar)`;
+          }
+          message += `\n\n📸 Adjunto foto de referencia de la camiseta.`;
           message += `\n\n_GinesCloset - Personalización de camisetas_`;
           
           window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank");
@@ -488,6 +579,7 @@
       // Init
       loadFootballJerseys();
       bindJerseySelection();
+      updatePreview();
     });
   </script>
 </body>
