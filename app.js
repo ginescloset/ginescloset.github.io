@@ -159,7 +159,36 @@ function renderRecentlyViewed(currentId){
   return products.map(productCard).join("");
 }
 
+function injectLiquidBackground() {
+  if (document.querySelector(".gc-bg")) return;
+  const bg = document.createElement("div");
+  bg.className = "gc-bg";
+  bg.setAttribute("aria-hidden", "true");
+  const blobs = '<span class="gc-aurora"></span><span class="gc-blob b1"></span><span class="gc-blob b2"></span><span class="gc-blob b3"></span><span class="gc-blob b4"></span>';
+  const glyphs = ["👕","🎒","👟","🧢","👖","👜","🧥","⚽",
+    "✦","✦","✦","✦","✦","✦","✦","✦","✦","✦","✦","✦","✦","✦"];
+  const icons = glyphs.map((g, i) => `<span class="gc-icon-float ${i < 8 ? "gc-obj" : "gc-spark"} i${i}">${g}</span>`).join("");
+  bg.innerHTML = blobs + '<div class="gc-icons">' + icons + '</div>';
+  document.body.prepend(bg);
+}
+
+function initHeroVideo() {
+  const video = document.querySelector(".home-hero video");
+  if (!video) return;
+  video.loop = true; video.muted = true;
+  const kick = () => { if (video.paused && !document.hidden) video.play().catch(() => {}); };
+  video.addEventListener("ended", () => { try { video.currentTime = 0; } catch {} video.play().catch(() => {}); });
+  video.addEventListener("stalled", kick);
+  video.addEventListener("suspend", kick);
+  document.addEventListener("visibilitychange", kick);
+  window.addEventListener("pageshow", kick);
+  ["click", "touchstart", "keydown", "scroll"].forEach(type => window.addEventListener(type, kick, { passive: true }));
+  kick();
+}
+
 function initChrome() {
+  injectLiquidBackground();
+  initHeroVideo();
   document.querySelectorAll("[data-year]").forEach(node => node.textContent = new Date().getFullYear());
   const header = document.querySelector("[data-header]");
   const tools = header?.querySelector(".header-tools");
@@ -681,26 +710,71 @@ function renderStockPage() {
   const count = document.querySelector("#stockResultCount"); if (count) count.textContent = products.length;
 }
 
+let gcDeferredInstall = null;
+window.addEventListener("beforeinstallprompt", event => {
+  event.preventDefault();
+  gcDeferredInstall = event;
+  document.querySelectorAll("[data-install]").forEach(el => { el.hidden = false; el.classList.remove("hidden"); });
+});
+window.addEventListener("appinstalled", () => {
+  gcDeferredInstall = null;
+  document.querySelectorAll("[data-install]").forEach(el => { el.hidden = true; });
+  document.querySelector("#homeInstall")?.classList.add("hidden");
+});
+function gcIsStandalone() { return matchMedia("(display-mode: standalone)").matches || navigator.standalone === true; }
+function gcIsIOS() { return /iphone|ipad|ipod/i.test(navigator.userAgent); }
+
+async function gcTriggerInstall() {
+  if (gcDeferredInstall) {
+    gcDeferredInstall.prompt();
+    await gcDeferredInstall.userChoice.catch(() => {});
+    gcDeferredInstall = null;
+    document.querySelectorAll("[data-install]").forEach(el => { el.hidden = true; });
+    return;
+  }
+  gcOpenInstallHelp();
+}
+function gcCloseInstallHelp() {
+  const dialog = document.querySelector("#gcInstallHelp");
+  dialog?.classList.remove("open");
+  dialog?.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+}
+function gcOpenInstallHelp() {
+  let dialog = document.querySelector("#gcInstallHelp");
+  if (!dialog) {
+    document.body.insertAdjacentHTML("beforeend", `<div class="modal-backdrop gc-install-modal" id="gcInstallHelp" aria-hidden="true"><section class="gc-install-card" role="dialog" aria-modal="true" aria-label="Instalar la app"><button class="modal-close" type="button" data-close aria-label="Cerrar">×</button><p class="kicker blue">APP PARA EL MÓVIL</p><h2>Instala GinesCloset</h2><p class="gc-install-lead">Se añade a tu pantalla de inicio y se abre como una app, sin barra del navegador.</p><div class="gc-install-steps"><article><b>iPhone · Safari</b><ol><li>Toca el botón <b>Compartir</b> (cuadrado con la flecha hacia arriba).</li><li>Baja y elige <b>«Añadir a pantalla de inicio»</b>.</li><li>Confirma en <b>«Añadir»</b>.</li></ol></article><article><b>Android · Chrome</b><ol><li>Toca el menú <b>⋮</b> (arriba a la derecha).</li><li>Elige <b>«Instalar aplicación»</b>.</li><li>Confirma en <b>«Instalar»</b>.</li></ol></article></div></section></div>`);
+    dialog = document.querySelector("#gcInstallHelp");
+    dialog.addEventListener("click", event => { if (event.target === dialog || event.target.closest("[data-close]")) gcCloseInstallHelp(); });
+    window.addEventListener("keydown", event => { if (event.key === "Escape") gcCloseInstallHelp(); });
+  }
+  dialog.classList.add("open");
+  dialog.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+}
+
 function initInstallPrompt() {
-  const section = document.querySelector("#homeInstall");
-  if (!section) return;
-  const installed = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
-  if (installed) { section.classList.add("hidden"); return; }
-  const button = document.querySelector("#installAppBtn");
-  let deferredPrompt = null;
-  window.addEventListener("beforeinstallprompt", event => {
-    event.preventDefault();
-    deferredPrompt = event;
-    button?.classList.remove("hidden");
-  });
-  button?.addEventListener("click", async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice.catch(() => {});
-    deferredPrompt = null;
-    button.classList.add("hidden");
-  });
-  window.addEventListener("appinstalled", () => section.classList.add("hidden"));
+  if (gcIsStandalone()) { document.querySelector("#homeInstall")?.classList.add("hidden"); return; }
+  const tools = document.querySelector("[data-header] .header-tools");
+  if (tools && !tools.querySelector(".gc-install-btn")) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "header-icon gc-install-btn";
+    btn.setAttribute("aria-label", "Instalar la app");
+    btn.setAttribute("title", "Instalar la app");
+    btn.dataset.install = "";
+    btn.innerHTML = '<span aria-hidden="true">⤓</span>';
+    btn.hidden = !(gcDeferredInstall || gcIsIOS());
+    btn.addEventListener("click", gcTriggerInstall);
+    const searchShortcut = tools.querySelector(".search-shortcut");
+    if (searchShortcut) searchShortcut.before(btn); else tools.prepend(btn);
+  }
+  const homeBtn = document.querySelector("#installAppBtn");
+  if (homeBtn) {
+    homeBtn.dataset.install = "";
+    homeBtn.hidden = !gcDeferredInstall;
+    if (!homeBtn.dataset.wired) { homeBtn.dataset.wired = "1"; homeBtn.addEventListener("click", gcTriggerInstall); }
+  }
 }
 
 function initJerseyExamples() {
@@ -993,6 +1067,7 @@ onAuthStateChanged(auth, async user => {
     state.favoritesReady=true;state.cartReady=true;writeAuthHint({signedIn:false,role:"customer",label:"Iniciar sesión"});
   }
   state.authReady=true;renderUserState();
+  window.dispatchEvent(new CustomEvent("gc-auth-change", { detail: { signedIn: Boolean(state.user), role: state.role } }));
 });
 
 initChrome();
@@ -1002,6 +1077,10 @@ if(page==="stock")initStockPage();
 if(page==="favorites")initFavorites();
 if(page==="futbol")initJerseyExamples();
 renderPage();
+
+// API mínima para scripts de página (p. ej. el personalizador de fútbol)
+window.gcAuthState = () => ({ ready: state.authReady, signedIn: Boolean(state.user), role: state.role });
+window.gcOpenAuth = (mode) => openAuthModal(mode || "register");
 
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));

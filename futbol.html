@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="es" class="gc-auth-pending">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8"><meta name="gc-release" content="2026.09.01-r62">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Personaliza tu camiseta de fútbol en GinesCloset. Añade nombre, número, parches y más.">
   <title>Personaliza tu Camiseta | GinesCloset</title>
@@ -13,8 +13,8 @@
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://firestore.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap">
-  <link rel="stylesheet" href="styles.css?v=49.0">
-  <script type="module" src="app.js?v=49.0"></script>
+  <link rel="stylesheet" href="styles.css?v=62.0">
+  <script type="module" src="app.js?v=62.0"></script>
 </head>
 <body data-page="futbol">
   <a class="skip-link" href="#mainContent">Saltar al contenido</a>
@@ -224,23 +224,8 @@
                       <small>Copa Mundial</small>
                     </div>
                   </label>
-                  <label class="patch-type-option">
-                    <input type="checkbox" name="patch" value="escudo">
-                    <div class="patch-card">
-                      <span class="patch-icon">🛡️</span>
-                      <b>Escudo</b>
-                      <small>Escudo del equipo</small>
-                    </div>
-                  </label>
-                  <label class="patch-type-option">
-                    <input type="checkbox" name="patch" value="marca">
-                    <div class="patch-card">
-                      <span class="patch-icon">✓</span>
-                      <b>Marca</b>
-                      <small>Nike, Adidas, Puma...</small>
-                    </div>
-                  </label>
                 </div>
+                <p class="patch-included-note">El escudo del equipo y la marca (Nike, Adidas…) ya van incluidos en el precio de la camiseta.</p>
               </div>
               <div class="admin-field">
                 <span>Parche personalizado</span>
@@ -264,6 +249,7 @@
               <button class="button button-primary" id="sendWhatsApp" type="button" disabled>
                 Enviar por WhatsApp
               </button>
+              <p class="send-auth-note" id="sendAuthNote">Necesitas una cuenta para enviar tu diseño. Es gratis y de un minuto.</p>
             </div>
           </section>
         </div>
@@ -505,7 +491,7 @@
         previewNumber.textContent = state.jerseyNumber || "00";
         previewSize.textContent = `Talla: ${state.size}`;
         
-        const patchLabels = { liga: "Liga", champions: "Champions", europa: "Europa League", conference: "Conference League", copa: "Copa", mundial: "Mundial", escudo: "Escudo", marca: "Marca" };
+        const patchLabels = { liga: "Liga", champions: "Champions", europa: "Europa League", conference: "Conference League", copa: "Copa", mundial: "Mundial" };
         const allPatches = [...state.patches.map(p => patchLabels[p] || p), state.customPatch].filter(Boolean);
         previewPatches.textContent = allPatches.length ? allPatches.join(", ") : "Sin parches";
 
@@ -536,13 +522,27 @@
           sendSummary.innerHTML = "<p>Elige el tipo de prenda para empezar.</p>";
           sendBtn.disabled = true;
         }
+
+        const auth = typeof window.gcAuthState === "function" ? window.gcAuthState() : { ready: false, signedIn: false };
+        const authNote = document.getElementById("sendAuthNote");
+        if (authNote) authNote.classList.toggle("hidden", !auth.ready || auth.signedIn);
+        sendBtn.textContent = (auth.ready && !auth.signedIn) ? "Regístrate y envía por WhatsApp" : "Enviar por WhatsApp";
       };
+      window.addEventListener("gc-auth-change", () => updatePreview());
 
       // Enviar por WhatsApp
       const sendBtn = document.getElementById("sendWhatsApp");
       if (sendBtn) {
         sendBtn.addEventListener("click", () => {
-          const patchLabels = { liga: "Liga", champions: "Champions", europa: "Europa League", conference: "Conference League", copa: "Copa", mundial: "Mundial", escudo: "Escudo", marca: "Marca" };
+          const auth = typeof window.gcAuthState === "function" ? window.gcAuthState() : { ready: true, signedIn: false };
+          if (!auth.ready) { showToast("Un momento, comprobando tu sesión…", "error"); return; }
+          if (!auth.signedIn) {
+            showToast("Regístrate o inicia sesión para enviar tu diseño", "error");
+            if (typeof window.gcOpenAuth === "function") window.gcOpenAuth("register");
+            return;
+          }
+
+          const patchLabels = { liga: "Liga", champions: "Champions", europa: "Europa League", conference: "Conference League", copa: "Copa", mundial: "Mundial" };
           const allPatches = [...state.patches.map(p => patchLabels[p] || p), state.customPatch].filter(Boolean);
           
           const quote = estimate();
